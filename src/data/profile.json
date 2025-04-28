@@ -1,0 +1,35 @@
+[
+    {
+        "user_id": 1,
+        "display_name": "Aminah",
+        "jobtitle": "Pelajar",
+        "tagline": "Belajar ngaji yuk!",
+        "about_me": "Suka belajar fiqih dan tajwid.",
+        "skills": "Tajwid, Tilawah",
+        "avatar": "https://example.com/aminah.jpg",
+        "created_date": "2025-04-01T10:05:00",
+        "updated_date": null
+    },
+    {
+        "user_id": 2,
+        "display_name": "Ustadz Budi",
+        "jobtitle": "Pengajar",
+        "tagline": "Ngaji itu indah",
+        "about_me": "Mengajar ilmu tajwid dan tahfidz.",
+        "skills": "Tajwid, Tahfidz",
+        "avatar": "https://example.com/ustbudi.jpg",
+        "created_date": "2025-04-01T11:10:00",
+        "updated_date": null
+    },
+    {
+        "user_id": 3,
+        "display_name": "Zaki",
+        "jobtitle": "Mahasiswa",
+        "tagline": "Ngaji biar berkah",
+        "about_me": "Ingin memperdalam ilmu agama.",
+        "skills": "Hadis, Bahasa Arab",
+        "avatar": "https://example.com/zaki.jpg",
+        "created_date": "2025-04-01T12:15:00",
+        "updated_date": null
+    }
+]

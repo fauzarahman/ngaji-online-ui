@@ -1,0 +1,20 @@
+[
+    {
+        "id": 1,
+        "user_id": 3,
+        "lesson_id": 1,
+        "last_position": 154,
+        "duration": 300,
+        "is_completed": 0,
+        "updated_date": "2025-04-22T21:30:00"
+    },
+    {
+        "id": 1,
+        "user_id": 3,
+        "lesson_id": 2,
+        "last_position": 300,
+        "duration": 300,
+        "is_completed": 1,
+        "updated_date": "2025-04-22T20:00:00"
+    }
+]

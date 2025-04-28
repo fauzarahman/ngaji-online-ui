@@ -1,0 +1,32 @@
+[
+    {
+        "id": 1,
+        "title": "Ilmu Tajwid Dasar",
+        "description": "Pengantar hukum bacaan Al-Qur'an",
+        "video_header_id": "1",
+        "instructor_id": "2",
+        "weeks": 4,
+        "created_date": "2025-04-02T08:00:00",
+        "updated_date": null
+    },
+    {
+        "id": 2,
+        "title": "Tafsir Juz Amma",
+        "description": "Penjelasan ayat-ayat pendek",
+        "video_header_id": "2",
+        "instructor_id": "2",
+        "weeks": 3,
+        "created_date": "2025-04-02T09:00:00",
+        "updated_date": null
+    },
+    {
+        "id": 3,
+        "title": "Ilmu Hadis",
+        "description": "Dasar-dasar memahami hadis",
+        "video_header_id": "3",
+        "instructor_id": "2",
+        "weeks": 5,
+        "created_date": "2025-04-02T10:00:00",
+        "updated_date": null
+    }
+]

@@ -1,0 +1,41 @@
+[
+    {
+        "id": 1,
+        "quiz_id": 1,
+        "user_id": 1,
+        "answer_type": "text",
+        "answer_value": "Ikhfa",
+        "checked_by": 2,
+        "is_passed": 1,
+        "score": 90,
+        "review_notes": "Bagus",
+        "created_date": "2025-04-08T08:00:00",
+        "updated_date": null
+    },
+    {
+        "id": 2,
+        "quiz_id": 2,
+        "user_id": 1,
+        "answer_type": "file",
+        "answer_value": "https://example.com/audio1.mp3",
+        "checked_by": 2,
+        "is_passed": 1,
+        "score": 85,
+        "review_notes": "Tajwid cukup baik",
+        "created_date": "2025-04-08T09:00:00",
+        "updated_date": null
+    },
+    {
+        "id": 3,
+        "quiz_id": 3,
+        "user_id": 3,
+        "answer_type": "text",
+        "answer_value": "Tunjukkan kami jalan yang lurus",
+        "checked_by": 2,
+        "is_passed": 1,
+        "score": 95,
+        "review_notes": "Jawaban tepat",
+        "created_date": "2025-04-09T10:00:00",
+        "updated_date": null
+    }
+]

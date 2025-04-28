@@ -1,0 +1,29 @@
+[
+    {
+        "id": 1,
+        "modules_id": 1,
+        "parent_id": null,
+        "user_id": 1,
+        "content": "Ustadz, bolehkah baca cepat saat murajaah?",
+        "created_date": "2025-04-10T08:00:00",
+        "updated_date": null
+    },
+    {
+        "id": 2,
+        "modules_id": 1,
+        "parent_id": 1,
+        "user_id": 2,
+        "content": "Boleh, asal tetap menjaga makhraj huruf.",
+        "created_date": "2025-04-10T09:00:00",
+        "updated_date": null
+    },
+    {
+        "id": 3,
+        "modules_id": 2,
+        "parent_id": null,
+        "user_id": 3,
+        "content": "Apa tafsir pendek dari Surah An-Naas?",
+        "created_date": "2025-04-10T10:00:00",
+        "updated_date": null
+    }
+]

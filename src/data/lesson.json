@@ -1,0 +1,32 @@
+[
+    {
+        "id": 1,
+        "module_id": 1,
+        "title": "Hukum Nun Sukun",
+        "description": "Penjelasan ikhfa', idgham, dll.",
+        "video_header_id": 1,
+        "week_number": 1,
+        "created_date": "2025-04-02T11:00:00",
+        "updated_date": null
+    },
+    {
+        "id": 2,
+        "module_id": 1,
+        "title": "Hukum Mim Sukun",
+        "description": "Ikhfa syafawi, idgham mimi, dll.",
+        "video_header_id": 1,
+        "week_number": 2,
+        "created_date": "2025-04-03T11:00:00",
+        "updated_date": null
+    },
+    {
+        "id": 3,
+        "module_id": 2,
+        "title": "Tafsir Surah Al-Fatihah",
+        "description": "Makna dan kandungan Al-Fatihah",
+        "video_header_id": 2,
+        "week_number": 1,
+        "created_date": "2025-04-04T11:00:00",
+        "updated_date": null
+    }
+]
