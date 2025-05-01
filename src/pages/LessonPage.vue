@@ -1,95 +1,236 @@
 <template>
-  <class class="q-pa-md">
-    <!-- Header with Back Button -->
-    <q-header elevated class="bg-primary text-white">
+  <q-page class="q-pa-md">
+    <q-header elevated class="bg-green-gradient text-white">
       <q-toolbar>
         <q-btn flat round dense icon="arrow_back" @click="goBack" />
-        <q-toolbar-title>Qalqalah Sugra</q-toolbar-title>
+        <q-toolbar-title>{{ lessons?.title || 'Lesson' }}</q-toolbar-title>
       </q-toolbar>
     </q-header>
 
     <!-- Video Player -->
-    <div class="video-container">
-      <q-img src="https://placehold.co/600x300" class="video-placeholder">
-        <q-icon name="play_circle" size="lg" class="play-icon" />
-      </q-img>
+    <div v-if="videoReady" class="video-container q-mt-md">
+      <video
+        ref="videoPlayer"
+        class="video-js vjs-default-skin vjs-big-play-centered"
+        playsinline
+      ></video>
     </div>
 
     <!-- Instructor Profile -->
-    <div flat bordered class="q-mt-md q-px-sm q-pb-md row items-center">
+    <div class="q-mt-md q-px-sm q-pb-md row items-center">
       <q-avatar size="50px">
-        <img src="https://placehold.co/100">
+        <img src="https://placehold.co/100" />
       </q-avatar>
       <div class="q-ml-md">
-        <div class="text-bold text-dark">Ajrul Rois</div>
-        <div class="text-caption text-grey-7">Imam Masjid Raden Patah</div>
+        <div class="text-bold text-dark">
+          {{ lessons?.module_detail?.instructor_profile?.display_name || '' }}
+        </div>
+        <div class="text-caption text-grey-7">
+          {{ lessons?.module_detail?.instructor_profile?.jobtitle || '' }}
+        </div>
       </div>
     </div>
 
+    <!-- Description -->
     <div class="q-mt-md q-px-sm q-pb-md row items-center">
-      Lorem Ipsum is simply dummy text of the printing and typesetting industry. 
-      Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, 
-      when an unknown printer took a galley of type and scrambled it to make a type specimen book. 
-      It has survived not only five centuries, but also the leap into electronic typesetting
+      {{ lessons?.description || '' }}
     </div>
-  </class>
+  </q-page>
 </template>
 
-<script>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+<script setup>
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import axios from 'axios';
+import api from 'src/config/api';
 
-export default {
-  setup() {
-    const router = useRouter();
-    const tab = ref("lessons");
+import videojs from 'video.js';
+import 'video.js/dist/video-js.css';
+import 'videojs-youtube';
 
-    const lessons = ref([
-      [
-        { title: "Qalqalah Sugra", description: "Lorem ipsum dolor sit amet consectetur. Lectus viverra sed" },
-        { title: "Qalqalah Kubra", description: "Lorem ipsum dolor sit amet consectetur. Lectus viverra sed" }
-      ],
-      [
-        { title: "Advanced Qalqalah", description: "Lorem ipsum dolor sit amet consectetur. Lectus viverra sed" }
-      ]
-    ]);
+const router = useRouter();
+const route = useRoute();
+const lessonId = route.params.id;
+const accessToken = localStorage.getItem('token');
+const userId = Number(localStorage.getItem('id'));
 
-    const goBack = () => {
-      router.go(-1); // Kembali ke halaman sebelumnya
-    };
+const lessons = ref(null);
+const videoPlayer = ref(null);
+const videoReady = ref(false);
+let player = null;
+let interval = null;
+let lastPositionFromLog = 0;
+const maxWatchedTime = ref(0);
 
-    return { tab, lessons, goBack };
+const lastLogData = ref({
+  parent_id: Number(lessonId),
+  user_id: userId,
+  last_position: 0,
+  duration: 0,
+  is_complete: 0,
+  updated_date: new Date().toISOString()
+});
+
+const goBack = () => router.go(-1);
+const isEnded = ref(false);
+
+onMounted(async () => {
+  await fetchPreviousLog();
+  await fetchLessonAndInit();
+});
+
+async function fetchPreviousLog() {
+  try {
+    const res = await axios.get(`${api.API_BASE_URL}/videologs`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      params: { user_id: userId, parent_id: lessonId }
+    });
+    const log = res.data?.data?.[0];
+    if (log?.last_position) {
+      lastPositionFromLog = log.last_position;
+    }
+  } catch (err) {
+    console.warn('No previous log found or failed to fetch');
   }
-};
+}
+
+async function fetchLessonAndInit() {
+  try {
+    const res = await axios.get(`${api.API_BASE_URL}/lessons?id=${lessonId}`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    const { data: lessonsDataArray } = res.data;
+    lessons.value = lessonsDataArray[0] || null;
+
+    if (lessons.value?.video_header_id) {
+      const raw = lessons.value.video_header_id;
+      const match = raw.match(/(?:youtu\.be\/|v=)([^&]+)/);
+      const videoId = match?.[1];
+
+      if (videoId) {
+        videoReady.value = true;
+        await nextTick();
+        initVideoJs(videoId);
+      }
+    }
+  } catch (err) {
+    console.error('Failed to fetch lesson data', err);
+  }
+}
+
+function initVideoJs(videoId) {
+  if (player) player.dispose();
+
+  player = videojs(videoPlayer.value, {
+    techOrder: ['youtube'],
+    sources: [{
+      type: 'video/youtube',
+      src: `https://www.youtube.com/watch?v=${videoId}`
+    }],
+    controls: true,
+    autoplay: false,
+    preload: 'auto',
+    youtube: { modestbranding: 1, rel: 0, showinfo: 0 },
+    responsive: true,
+    fluid: true
+  });
+
+  player.on('loadedmetadata', () => {
+    if (lastPositionFromLog > 0 && lastPositionFromLog < player.duration()) {
+      player.currentTime(lastPositionFromLog);
+      maxWatchedTime.value = lastPositionFromLog;
+    }
+  });
+
+  player.on('play', () => {
+    if (interval) clearInterval(interval);
+    interval = setInterval(() => sendVideoLog(), 30000);
+  });
+
+  player.on('timeupdate', () => {
+    const current = player.currentTime();
+    const total = player.duration();
+
+    if (current - maxWatchedTime.value > 5) {
+      player.currentTime(maxWatchedTime.value);
+      return;
+    }
+
+    if (current > maxWatchedTime.value) {
+      maxWatchedTime.value = current;
+    }
+
+    lastLogData.value.last_position = Math.floor(current);
+    lastLogData.value.duration = Math.floor(total);
+    lastLogData.value.updated_date = new Date().toISOString();
+    lastLogData.value.is_complete = 0;
+  });
+
+  player.on('pause', () => {
+    clearInterval(interval);
+    sendVideoLog();
+  });
+
+  player.on('ended', () => {
+    clearInterval(interval);
+    isEnded.value = true;
+    lastLogData.value.is_complete = 1;
+    sendVideoLog(true);
+  });
+
+}
+
+async function sendVideoLog(is_ended = false) {
+  // Periksa apakah sudah selesai
+  if (is_ended) {
+    lastLogData.value.is_complete = 1;
+  } else {
+    lastLogData.value.is_complete = 0;
+  }
+
+  const { user_id, parent_id } = lastLogData.value;
+
+  try {
+    const res = await axios.get(`${api.API_BASE_URL}/videologs`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      params: { user_id, parent_id }
+    });
+    const existing = res.data?.data?.[0];
+    const payload = { ...lastLogData.value };
+
+    if (existing) {
+      await axios.patch(`${api.API_BASE_URL}/videologs/${existing.id}`, payload, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+    } else {
+      await axios.post(`${api.API_BASE_URL}/videologs`, payload, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+    }
+  } catch (err) {
+    console.error('Failed to send video log:', err);
+  }
+}
+onBeforeUnmount(() => {
+  clearInterval(interval);
+  if(!isEnded.value){
+    sendVideoLog(); // kirim dengan status akhir
+  }
+  if (player) {
+    player.dispose();
+    player = null;
+  }
+});
 </script>
 
 <style scoped>
 .video-container {
-  position: relative;
   width: 100%;
-  height: 200px;
-  background: #ccc;
+  max-width: 100%;
 }
-
-.video-placeholder {
+.video-js {
   width: 100%;
-  height: 100%;
-  border-radius: 8px;
-}
-
-.play-icon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 40px;
-  color: white;
-  opacity: 0.8;
-}
-
-.lesson-thumbnail {
-  width: 80px;
-  height: 60px;
+  height: 250px;
   border-radius: 8px;
 }
 </style>

@@ -29,10 +29,36 @@ const routes = [
     path: "/register", component: RegisterPage
   },
   {
-    path: '/dashboard',
+    path: '/dashboardsantri',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/HomePage.vue') }
+      { path: '', component: () => import('pages/SantriHomePage.vue') }
+    ],
+    beforeEnter: (to, from, next) => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        next("/");
+      } else {
+        try {
+          const decoded = jwtDecode(token);
+          if (decoded.exp * 1000 < Date.now()) {
+            localStorage.removeItem("token"); // Remove expired token
+            next("/");
+          } else {
+            next();
+          }
+        } catch (error) {
+          localStorage.removeItem("token");
+          next("/");
+        }
+      }
+    }
+  },
+  {
+    path: '/dashboardguru',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      { path: '', component: () => import('pages/GuruHomePage.vue') }
     ],
     beforeEnter: (to, from, next) => {
       const token = localStorage.getItem("token");
@@ -58,7 +84,11 @@ const routes = [
     path: '/module',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/ModulePage.vue') }
+      { 
+        path: ':id',   // 🔥 Ini wajib, parameter dinamis
+        name: 'module-detail',
+        component: () => import('pages/ModulePage.vue')
+      }
     ],
     beforeEnter: (to, from, next) => {
       const token = localStorage.getItem("token");
@@ -68,7 +98,7 @@ const routes = [
         try {
           const decoded = jwtDecode(token);
           if (decoded.exp * 1000 < Date.now()) {
-            localStorage.removeItem("token"); // Remove expired token
+            localStorage.removeItem("token");
             next("/");
           } else {
             next();
@@ -84,7 +114,11 @@ const routes = [
     path: '/lesson',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/LessonPage.vue') }
+      { 
+        path: ':id',   // 🔥 Ini wajib, parameter dinamis
+        name: 'lesson-detail',
+        component: () => import('pages/LessonPage.vue')
+      }
     ],
     beforeEnter: (to, from, next) => {
       const token = localStorage.getItem("token");

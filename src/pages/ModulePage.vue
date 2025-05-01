@@ -1,16 +1,16 @@
 <template>
   <q-page class="q-pa-md">
     <!-- Header with Back Button -->
-    <q-header elevated class="bg-primary text-white">
+    <q-header elevated class="bg-green-gradient text-white">
       <q-toolbar>
         <q-btn flat round dense icon="arrow_back" @click="goBack" />
-        <q-toolbar-title>Lesson 1</q-toolbar-title>
+        <q-toolbar-title>{{ moduleData?.title || 'Lesson' }}</q-toolbar-title>
       </q-toolbar>
     </q-header>
 
     <!-- Video Player -->
     <div class="video-container q-mt-md">
-      <q-img src="https://placehold.co/600x300" class="video-placeholder">
+      <q-img :src="moduleData?.thumbnail || 'https://placehold.co/600x300'" class="video-placeholder">
         <q-icon name="play_circle" size="lg" class="play-icon" />
       </q-img>
     </div>
@@ -18,13 +18,19 @@
     <!-- Instructor Profile -->
     <q-card flat bordered class="q-mt-md q-pa-md row items-center">
       <q-avatar size="50px">
-        <img src="https://placehold.co/100">
+        <img src="https://placehold.co/100" />
       </q-avatar>
       <div class="q-ml-md">
-        <div class="text-bold text-dark">Ajrul Rois</div>
-        <div class="text-caption text-grey-7">Imam Masjid Raden Patah</div>
+        <div class="text-bold text-dark">{{ moduleData?.instructor_profile?.display_name || '' }}</div>
+        <div class="text-caption text-grey-7">{{ moduleData?.instructor_profile?.jobtitle || '' }}</div>
       </div>
     </q-card>
+
+    <!-- Module Info -->
+    <div class="q-mt-md">
+      <div class="text-h7 text-dark">{{ moduleData?.title || '' }}</div>
+      <div class="text-h6 text-dark-12">{{ moduleData?.description || '' }}</div>
+    </div>
 
     <!-- Tabs -->
     <q-tabs v-model="tab" class="q-mt-md">
@@ -36,25 +42,29 @@
     <q-tab-panels v-model="tab" animated>
       <!-- Lessons Tab -->
       <q-tab-panel name="lessons">
-        <div v-for="(week, index) in lessons" :key="index">
-          <div class="text-h6 q-mt-md">Week {{ index + 1 }}</div>
-          <q-card flat bordered v-for="lesson in week" :key="lesson.title" class="q-mt-sm" @click="$router.push('/lesson')">
-            <q-item>
-              <q-item-section avatar>
-                <q-img src="https://placehold.co/100x70" class="lesson-thumbnail">
-                  <q-icon name="play_circle" class="play-icon" />
-                </q-img>
-              </q-item-section>
-              <q-item-section>
-                <q-item-label class="text-bold">{{ lesson.title }}</q-item-label>
-                <q-item-label caption>{{ lesson.description }}</q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-btn flat dense round icon="check_circle" />
-              </q-item-section>
-            </q-item>
-          </q-card>
-        </div>
+        <q-card 
+          v-for="lesson in lessons" 
+          :key="lesson.id" 
+          flat 
+          bordered 
+          class="q-mt-sm" 
+          @click="$router.push(`/lesson/${lesson.id}`)"
+        >
+          <q-item>
+            <q-item-section avatar>
+              <q-img src="https://placehold.co/100x70" class="lesson-thumbnail">
+                <q-icon name="play_circle" class="play-icon" />
+              </q-img>
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="text-bold">{{ lesson.title }}</q-item-label>
+              <q-item-label caption>{{ lesson.description }}</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-btn flat dense round icon="check_circle" />
+            </q-item-section>
+          </q-item>
+        </q-card>
       </q-tab-panel>
 
       <!-- Quiz Tab -->
@@ -72,32 +82,50 @@
   </q-page>
 </template>
 
-<script>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import axios from 'axios';
+import api from 'src/config/api';
 
-export default {
-  setup() {
-    const router = useRouter();
-    const tab = ref("lessons");
+const router = useRouter();
+const route = useRoute();
 
-    const lessons = ref([
-      [
-        { title: "Qalqalah Sugra", description: "Lorem ipsum dolor sit amet consectetur. Lectus viverra sed" },
-        { title: "Qalqalah Kubra", description: "Lorem ipsum dolor sit amet consectetur. Lectus viverra sed" }
-      ],
-      [
-        { title: "Advanced Qalqalah", description: "Lorem ipsum dolor sit amet consectetur. Lectus viverra sed" }
-      ]
+const tab = ref('lessons');
+const moduleData = ref(null);
+const lessons = ref([]);
+
+const accessToken = localStorage.getItem('token');
+const moduleId = route.params.id;
+
+const goBack = () => {
+  router.go(-1);
+};
+
+onMounted(async () => {
+  try {
+    const [moduleRes, lessonsRes] = await Promise.all([
+      axios.get(`${api.API_BASE_URL}/modules?id=${moduleId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      }),
+      axios.get(`${api.API_BASE_URL}/lessons?module_id=${moduleId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      })
     ]);
 
-    const goBack = () => {
-      router.go(-1); // Kembali ke halaman sebelumnya
-    };
+    const { data: moduleDataArray } = moduleRes.data;
+    const { data: lessonsDataArray } = lessonsRes.data;
 
-    return { tab, lessons, goBack };
+    console.log('Module fetched:', moduleDataArray);
+    console.log('Lessons fetched:', lessonsDataArray);
+
+    moduleData.value = moduleDataArray[0] || null; // Ambil 1 module
+    lessons.value = lessonsDataArray;
+
+  } catch (error) {
+    console.error('Failed to fetch data:', error);
   }
-};
+});
 </script>
 
 <style scoped>

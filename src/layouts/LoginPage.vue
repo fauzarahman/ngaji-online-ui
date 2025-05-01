@@ -79,14 +79,33 @@ const handleLogin = async () => {
 
     const { accessToken, user } = res.data;
 
+    const res2 = await axios.get(`${api.API_BASE_URL}/profiles?user_id=${user.id}`, {
+      headers: {
+        Authorization: `${accessToken}`
+      }
+    });
+
+    const { data } = res2.data;
+    
+    console.log("profile :",data);
+    //const profile = dataprofile.total > 0 ? dataprofile.data[0] : null;
+
     // Simpan token dan informasi user
     localStorage.setItem("token", accessToken);
     localStorage.setItem("id", user.id);
     localStorage.setItem("email", user.email);
     localStorage.setItem("role", user.role || "user");
+    localStorage.setItem("profile", JSON.stringify(data[0]));
 
     // Redirect ke dashboard
-    router.push("/dashboard");
+    if(user.role == "admin"){
+      router.push("/dashboard");
+    }else if(user.role == "guru"){
+      router.push("/dashboardguru");
+    }else{
+      router.push("/dashboardsantri");
+    }
+    
 
     $q.notify({
       type: "positive",
