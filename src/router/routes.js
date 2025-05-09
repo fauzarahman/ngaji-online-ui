@@ -11,7 +11,7 @@ const routes = [
         try {
           const decoded = jwtDecode(token);
           if (decoded.exp * 1000 > Date.now()) {
-            next("/dashboard"); // Jika sudah login, redirect ke dashboard
+            next("/dashboardsantri"); // Jika sudah login, redirect ke dashboard
           } else {
             localStorage.removeItem("token");
             next(); // Token kadaluarsa, tetap di halaman login
@@ -85,7 +85,7 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { 
-        path: ':id',   // 🔥 Ini wajib, parameter dinamis
+        path: ':id', 
         name: 'module-detail',
         component: () => import('pages/ModulePage.vue')
       }
@@ -115,9 +115,39 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { 
-        path: ':id',   // 🔥 Ini wajib, parameter dinamis
+        path: ':id', 
         name: 'lesson-detail',
         component: () => import('pages/LessonPage.vue')
+      }
+    ],
+    beforeEnter: (to, from, next) => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        next("/");
+      } else {
+        try {
+          const decoded = jwtDecode(token);
+          if (decoded.exp * 1000 < Date.now()) {
+            localStorage.removeItem("token"); // Remove expired token
+            next("/");
+          } else {
+            next();
+          }
+        } catch (error) {
+          localStorage.removeItem("token");
+          next("/");
+        }
+      }
+    }
+  },
+  {
+    path: '/quiz-answer',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      { 
+        path: ':id', 
+        name: 'quiz-answer',
+        component: () => import('pages/QuizAnswerPage.vue')
       }
     ],
     beforeEnter: (to, from, next) => {

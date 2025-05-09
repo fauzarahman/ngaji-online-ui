@@ -82,7 +82,7 @@ onMounted(async () => {
 async function fetchPreviousLog() {
   try {
     const res = await axios.get(`${api.API_BASE_URL}/videologs`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: { Authorization: `${accessToken}` },
       params: { user_id: userId, parent_id: lessonId }
     });
     const log = res.data?.data?.[0];
@@ -97,7 +97,7 @@ async function fetchPreviousLog() {
 async function fetchLessonAndInit() {
   try {
     const res = await axios.get(`${api.API_BASE_URL}/lessons?id=${lessonId}`, {
-      headers: { Authorization: `Bearer ${accessToken}` }
+      headers: { Authorization: `${accessToken}` }
     });
     const { data: lessonsDataArray } = res.data;
     lessons.value = lessonsDataArray[0] || null;
@@ -192,7 +192,7 @@ async function sendVideoLog(is_ended = false) {
 
   try {
     const res = await axios.get(`${api.API_BASE_URL}/videologs`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: { Authorization: `${accessToken}` },
       params: { user_id, parent_id }
     });
     const existing = res.data?.data?.[0];
@@ -200,11 +200,11 @@ async function sendVideoLog(is_ended = false) {
 
     if (existing) {
       await axios.patch(`${api.API_BASE_URL}/videologs/${existing.id}`, payload, {
-        headers: { Authorization: `Bearer ${accessToken}` }
+        headers: { Authorization: `${accessToken}` }
       });
     } else {
       await axios.post(`${api.API_BASE_URL}/videologs`, payload, {
-        headers: { Authorization: `Bearer ${accessToken}` }
+        headers: { Authorization: `${accessToken}` }
       });
     }
   } catch (err) {

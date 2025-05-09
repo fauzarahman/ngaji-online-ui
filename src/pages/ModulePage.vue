@@ -69,9 +69,41 @@
 
       <!-- Quiz Tab -->
       <q-tab-panel name="quiz">
-        <div class="text-h6">Quiz Section</div>
-        <p>Here you can take quizzes for this lesson.</p>
+        <div class="text-h6 q-mb-md">Quiz Section</div>
+      
+        <div v-if="quizes.length === 0">
+          <p class="text-grey">No quiz questions available for this module.</p>
+        </div>
+      
+        <q-card
+          v-for="(q, index) in quizes"
+          :key="q.id"
+          class="q-mb-md"
+        >
+          <q-card-section>
+            <div class="text-subtitle1 text-bold">Question {{ index + 1 }}</div>
+      
+            <!-- Tampilkan soal berupa teks -->
+            <div v-if="q.type === 'text'" class="q-mt-sm">
+              {{ q.question }}
+            </div>
+      
+            <!-- Tampilkan soal berupa audio -->
+            <div v-else-if="q.type === 'file'" class="q-mt-sm">
+              <audio controls :src="q.question" style="width: 100%;" />
+            </div>
+      
+            <!-- Tombol Jawab -->
+            <q-btn
+              label="Jawab"
+              color="primary"
+              class="q-mt-md"
+              @click="goToAnswerPage(q)"
+            />
+          </q-card-section>
+        </q-card>
       </q-tab-panel>
+      
 
       <!-- Discussions Tab -->
       <q-tab-panel name="discussions">
@@ -94,6 +126,7 @@ const route = useRoute();
 const tab = ref('lessons');
 const moduleData = ref(null);
 const lessons = ref([]);
+const quizes = ref([]);
 
 const accessToken = localStorage.getItem('token');
 const moduleId = route.params.id;
@@ -102,25 +135,33 @@ const goBack = () => {
   router.go(-1);
 };
 
+const goToAnswerPage = (question) => {
+  router.push({
+    path: `/quiz-answer/${question.id}`
+  });
+};
+
 onMounted(async () => {
   try {
-    const [moduleRes, lessonsRes] = await Promise.all([
+    const [moduleRes, lessonsRes, quizRes] = await Promise.all([
       axios.get(`${api.API_BASE_URL}/modules?id=${moduleId}`, {
-        headers: { Authorization: `Bearer ${accessToken}` }
+        headers: { Authorization: `${accessToken}` }
       }),
       axios.get(`${api.API_BASE_URL}/lessons?module_id=${moduleId}`, {
-        headers: { Authorization: `Bearer ${accessToken}` }
+        headers: { Authorization: `${accessToken}` }
+      }),
+      axios.get(`${api.API_BASE_URL}/quiz?modules_id=${moduleId}`, {
+        headers: { Authorization: `${accessToken}` }
       })
     ]);
 
     const { data: moduleDataArray } = moduleRes.data;
     const { data: lessonsDataArray } = lessonsRes.data;
+    const { data: quizDataArray } = quizRes.data;
 
-    console.log('Module fetched:', moduleDataArray);
-    console.log('Lessons fetched:', lessonsDataArray);
-
-    moduleData.value = moduleDataArray[0] || null; // Ambil 1 module
+    moduleData.value = moduleDataArray[0] || null;
     lessons.value = lessonsDataArray;
+    quizes.value = quizDataArray;
 
   } catch (error) {
     console.error('Failed to fetch data:', error);
