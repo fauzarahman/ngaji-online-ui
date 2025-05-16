@@ -111,6 +111,36 @@ const routes = [
     }
   },
   {
+    path: '/module-form/:id?',   // id opsional, kalau gak ada berarti tambah baru
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      {
+        path: '',   // path kosong karena sudah pakai param di parent
+        name: 'module-form',
+        component: () => import('pages/ModulesForm.vue')  // sesuaikan path komponen form kamu
+      }
+    ],
+    beforeEnter: (to, from, next) => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        next("/");
+      } else {
+        try {
+          const decoded = jwtDecode(token);
+          if (decoded.exp * 1000 < Date.now()) {
+            localStorage.removeItem("token");
+            next("/");
+          } else {
+            next();
+          }
+        } catch (error) {
+          localStorage.removeItem("token");
+          next("/");
+        }
+      }
+    }
+  },
+  {
     path: '/lesson',
     component: () => import('layouts/MainLayout.vue'),
     children: [

@@ -81,6 +81,21 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <!-- Unsupported Voice Recording Dialog -->
+    <q-dialog v-model="showUnsupportedDialog">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Browser Tidak Didukung</div>
+          <div class="text-subtitle2 q-mt-sm">
+            Voice recording is not supported on this browser. Please use Google Chrome or another supported browser.
+          </div>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="OK" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -106,9 +121,10 @@ let mediaRecorder = null;
 let timerInterval = null;
 let chunks = ref([]);
 
-// Voice note dialog
+// Dialogs
 const showVoiceDialog = ref(false);
 const dontShowAgain = ref(false);
+const showUnsupportedDialog = ref(false);
 
 const checkVoiceGuide = () => {
   const dismissed = localStorage.getItem('voiceGuideDismissed');
@@ -136,7 +152,11 @@ const fetchAnswers = async () => {
   const instructorId = Number(quiz.value?.module_detail?.instructor_id);
   const res = await axios.get(`${api.API_BASE_URL}/answers`, {
     headers: { Authorization: accessToken },
-    params: { quiz_id: quizId, 'user_id[$in]': [userId, instructorId] }
+    params: {
+      quiz_id: quizId,
+      'user_id[$in]': [userId, instructorId],
+      '$sort[created_date]': '1'
+    }
   });
   answers.value = res.data?.data || [];
 };
@@ -151,7 +171,7 @@ const submitTextAnswer = async () => {
       answer_value: answerInput.value.trim(),
       is_passed: 0,
       score: 0,
-      review_notes : ""
+      review_notes: ""
     }, {
       headers: { Authorization: accessToken }
     });
@@ -188,6 +208,11 @@ const toggleRecording = async () => {
 };
 
 const startRecording = async () => {
+  if (typeof MediaRecorder === 'undefined') {
+    showUnsupportedDialog.value = true;
+    return;
+  }
+
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream);

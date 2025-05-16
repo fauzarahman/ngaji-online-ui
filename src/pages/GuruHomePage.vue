@@ -17,17 +17,18 @@
     </div>
 
     <!-- Course List as Vertical Cards -->
-    <div class="row  q-gutter-md">
+    <div class="row q-gutter-md">
       <q-card
         v-for="course in courses"
         :key="course.id"
-        class="col-sm-6 col-md-6 q-mb-md" style="width: 45%;"
+        class="col-sm-6 col-md-6 q-mb-md"
+        style="width: 45%;"
         flat
         bordered
       >
         <div class="relative-position">
           <q-img :src="course.thumbnail || 'https://placehold.co/300x200'" class="q-mb-sm" />
-    
+
           <q-btn
             flat
             dense
@@ -48,23 +49,31 @@
             </q-menu>
           </q-btn>
         </div>
-    
+
         <q-card-section>
           <div class="text-subtitle1 text-weight-medium">{{ course.title }}</div>
           <div class="text-caption text-grey">By {{ course.author }}</div>
         </q-card-section>
       </q-card>
-    </div>    
-
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import axios from "axios";
+import api from "src/config/api";
+
+const router = useRouter();
 
 const profile = ref({});
+const courses = ref([]);
+const accessToken = localStorage.getItem('token');
+const instructorId = localStorage.getItem('id');
 
-onMounted(() => {
+onMounted(async () => {
+  // Ambil profile dari localStorage
   const profileData = localStorage.getItem('profile');
   if (profileData) {
     try {
@@ -73,24 +82,29 @@ onMounted(() => {
       console.error('Error parsing profile from localStorage', e);
     }
   }
+
+  // Fetch courses/modules by instructor_id
+  try {
+    const res = await axios.get(`${api.API_BASE_URL}/modules`, {
+      headers: { Authorization: ` ${accessToken}` },
+      params: { instructor_id: instructorId }
+    });
+    courses.value = res.data.data || [];
+  } catch (err) {
+    console.error('Failed to fetch courses:', err);
+  }
 });
 
-const courses = ref([
-  { title: "Qalqalah", author: "Ajrul Rois", thumbnail: null },
-  { title: "Ghunnah", author: "Ajrul Rois", thumbnail: null },
-  { title: "Gharib", author: "Ajrul Rois", thumbnail: null }
-]);
+const onAdd = () => {
+  router.push('/module-form');  // Navigate to add form (no id)
+};
 
 const editCourse = (course) => {
-  console.log('Edit course:', course);
+  router.push(`/module-form/${course.id}`);  // Navigate to edit form with id
 };
 
 const deleteCourse = (course) => {
   console.log('Delete course:', course);
-};
-
-const onAdd = () => {
-  console.log('Tambah Materi');
 };
 </script>
 

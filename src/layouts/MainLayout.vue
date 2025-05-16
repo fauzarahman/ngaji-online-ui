@@ -3,7 +3,7 @@
     <!-- Side Menu -->
     <q-drawer v-model="rightDrawerOpen" side="right" show-if-above>
       <q-list>
-        <q-item clickable v-ripple to="/dashboard">
+        <q-item clickable v-ripple :to="dashboardUrl">
           <q-item-section>Home</q-item-section>
         </q-item>
 
@@ -31,7 +31,7 @@
     <!-- Fixed Footer with Menu -->
     <q-footer elevated class="bg-green-gradient text-white">
       <q-tabs :model-value="activeTab">
-        <q-tab name="/dashboard" icon="home" @click="$router.push('/dashboard')" />
+        <q-tab :name="dashboardUrl" icon="home" @click="$router.push(dashboardUrl)" />
         <q-tab name="/about" icon="info" @click="$router.push('/about')" />
         <q-tab name="/settings" icon="settings" @click="toggleRightDrawer" />
       </q-tabs>
@@ -40,30 +40,43 @@
 </template>
 
 <script>
-import { computed, ref } from "vue";
-import { useRouter } from "vue-router";
+import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 export default {
-  name: "MainLayout",
+  name: 'MainLayout',
   setup() {
     const rightDrawerOpen = ref(false);
     const router = useRouter();
 
-    const activeTab = computed(() => router.path);
+    // Ambil role user dari localStorage
+    const role = localStorage.getItem('role');
+
+    // Hitung dashboard URL sesuai role
+    const dashboardUrl = computed(() => {
+      switch (role) {
+        case 'santri':
+          return '/dashboardsantri';
+        case 'guru':
+          return '/dashboardguru';
+        case 'admin':
+          return '/dashboardadmin';
+        default:
+          return '/dashboard';
+      }
+    });
+
+    const activeTab = computed(() => router.currentRoute.value.path);
 
     const toggleRightDrawer = () => {
       rightDrawerOpen.value = !rightDrawerOpen.value;
     };
 
-    // Ambil role dari localStorage
-    const role = localStorage.getItem('role');
-
-    // Computed property untuk cek apakah admin
     const isAdmin = computed(() => role === 'admin');
 
     const logout = () => {
       localStorage.clear();
-      router.push("/");
+      router.push('/');
     };
 
     return {
@@ -71,9 +84,9 @@ export default {
       rightDrawerOpen,
       toggleRightDrawer,
       logout,
-      isAdmin
+      isAdmin,
+      dashboardUrl
     };
   }
 };
 </script>
-
