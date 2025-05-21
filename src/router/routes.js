@@ -200,6 +200,88 @@ const routes = [
       }
     }
   },
+  {
+    path: '/guru-quiz-answer/:idquiz/:idsantri',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      { 
+        path: '', 
+        name: 'guru-quiz-answer',
+        component: () => import('pages/GuruQuizAnswerPage.vue')
+      }
+    ],
+    beforeEnter: (to, from, next) => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        next("/");
+      } else {
+        try {
+          const decoded = jwtDecode(token);
+          if (decoded.exp * 1000 < Date.now()) {
+            localStorage.removeItem("token"); // Remove expired token
+            next("/");
+          } else {
+            next();
+          }
+        } catch (error) {
+          localStorage.removeItem("token");
+          next("/");
+        }
+      }
+    }
+  },
+  {
+    path: '/guru-inbox',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      { path: '', component: () => import('pages/GuruInboxPage.vue') }
+    ],
+    beforeEnter: (to, from, next) => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        next("/");
+      } else {
+        try {
+          const decoded = jwtDecode(token);
+          if (decoded.exp * 1000 < Date.now()) {
+            localStorage.removeItem("token"); // Remove expired token
+            next("/");
+          } else {
+            next();
+          }
+        } catch (error) {
+          localStorage.removeItem("token");
+          next("/");
+        }
+      }
+    }
+  },
+  {
+    path: '/santri-inbox',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      { path: '', component: () => import('pages/SantriInboxPage.vue') }
+    ],
+    beforeEnter: (to, from, next) => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        next("/");
+      } else {
+        try {
+          const decoded = jwtDecode(token);
+          if (decoded.exp * 1000 < Date.now()) {
+            localStorage.removeItem("token"); // Remove expired token
+            next("/");
+          } else {
+            next();
+          }
+        } catch (error) {
+          localStorage.removeItem("token");
+          next("/");
+        }
+      }
+    }
+  },
 
   // Always leave this as last one,
   // but you can also remove it

@@ -161,12 +161,48 @@ const fetchAnswers = async () => {
   answers.value = res.data?.data || [];
 };
 
+const updateCheckedBy = async () => {
+  try {// Filter answers that have no checked_by and need to be updated
+    const answersToUpdate = answers.value.filter((answer) => {
+      return answer.user_id === userId && !answer.checked_by; // Only update answers where `checked_by` is empty or null
+    });
+
+    // If there are no answers to update, return early
+    if (answersToUpdate.length === 0) {
+      console.log('No answers to update');
+      return;
+    }
+
+    // Map over the answers that need updating and set `checked_by` to instructorId
+    const updatedAnswers = answersToUpdate.map((answer) => ({
+      checked_by: userId, // Only send `checked_by` to update
+    }));
+
+    // Send update requests to the server for the filtered answers (only send checked_by)
+    const updatePromises = updatedAnswers.map((updatedAnswer, index) =>
+      axios.patch(`${api.API_BASE_URL}/answers/${answersToUpdate[index].id}`, updatedAnswer, {
+        headers: { Authorization: accessToken },
+      })
+    );
+
+    // Wait for all updates to finish
+    await Promise.all(updatePromises);
+
+    console.log('Answers updated successfully');
+  } catch (error) {
+    console.error('Failed to update checked_by:', error);
+  }
+};
+
 const submitTextAnswer = async () => {
+  const instructorId = Number(quiz.value?.module_detail?.instructor_id);
   if (!answerInput.value.trim()) return;
   try {
     await axios.post(`${api.API_BASE_URL}/answers`, {
       quiz_id: quizId,
       user_id: userId,
+      instructor_id: instructorId,
+      reply_to: instructorId,
       answer_type: 'text',
       answer_value: answerInput.value.trim(),
       is_passed: 0,
@@ -177,6 +213,8 @@ const submitTextAnswer = async () => {
     });
     answerInput.value = '';
     await fetchAnswers();
+    // Update checked_by after submit
+    await updateCheckedBy();
   } catch (err) {
     console.error('Submit text answer failed:', err);
   }
@@ -246,10 +284,13 @@ const handleRecordingStop = async () => {
     });
     const upload = await uploadRes.json();
     const uploadedFilename = upload?.filename || filename;
+    const instructorId = Number(quiz.value?.module_detail?.instructor_id);
 
     await axios.post(`${api.API_BASE_URL}/answers`, {
       quiz_id: quizId,
       user_id: userId,
+      instructor_id: instructorId,
+      reply_to: instructorId,
       answer_type: 'file',
       answer_value: uploadedFilename,
       is_passed: 0,
@@ -259,6 +300,8 @@ const handleRecordingStop = async () => {
       headers: { Authorization: accessToken }
     });
     await fetchAnswers();
+    // Update checked_by after submit
+    await updateCheckedBy();
   } catch (err) {
     console.error("Upload or answer submit failed:", err);
   }

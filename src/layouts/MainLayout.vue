@@ -32,6 +32,7 @@
     <q-footer elevated class="bg-green-gradient text-white">
       <q-tabs :model-value="activeTab">
         <q-tab :name="dashboardUrl" icon="home" @click="$router.push(dashboardUrl)" />
+        <q-tab :name="inboxUrl" icon="email" @click="$router.push(inboxUrl)" />
         <q-tab name="/about" icon="info" @click="$router.push('/about')" />
         <q-tab name="/settings" icon="settings" @click="toggleRightDrawer" />
       </q-tabs>
@@ -66,6 +67,19 @@ export default {
       }
     });
 
+    const inboxUrl = computed(() => {
+      switch (role) {
+        case 'santri':
+          return '/santri-inbox';
+        case 'guru':
+          return '/guru-inbox';
+        case 'admin':
+          return '/dashboardadmin';
+        default:
+          return '/santri-inbox';
+      }
+    });
+
     const activeTab = computed(() => router.currentRoute.value.path);
 
     const toggleRightDrawer = () => {
@@ -85,8 +99,9 @@ export default {
       toggleRightDrawer,
       logout,
       isAdmin,
-      dashboardUrl
+      dashboardUrl,
+      inboxUrl
     };
   }
 };
-</script>
+</script> 
