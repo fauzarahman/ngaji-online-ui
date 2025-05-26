@@ -12,11 +12,11 @@
     <div class="q-mt-md">
       <div class="text-h6 q-mb-xs">Question:</div>
       <q-card flat bordered class="q-pa-md">
-        <div v-if="quiz?.type === 'text'">
+        <div>
           {{ quiz?.question }}
         </div>
-        <div v-else-if="quiz?.type === 'file'">
-          <audio :src="getAudioUrl(quiz?.question)" controls v-if="quiz?.question" />
+        <div v-if="quiz?.media_id != ''">
+          <audio class="full-width" :src="getAudioUrl(quiz?.media_id)" controls v-if="quiz?.media_id" />
           <div v-else class="text-grey">No audio available.</div>
         </div>
       </q-card>
@@ -212,9 +212,10 @@ const submitTextAnswer = async () => {
       headers: { Authorization: accessToken }
     });
     answerInput.value = '';
-    await fetchAnswers();
+    
     // Update checked_by after submit
     await updateCheckedBy();
+    await fetchAnswers();
   } catch (err) {
     console.error('Submit text answer failed:', err);
   }
@@ -299,9 +300,9 @@ const handleRecordingStop = async () => {
     }, {
       headers: { Authorization: accessToken }
     });
-    await fetchAnswers();
     // Update checked_by after submit
     await updateCheckedBy();
+    await fetchAnswers();
   } catch (err) {
     console.error("Upload or answer submit failed:", err);
   }

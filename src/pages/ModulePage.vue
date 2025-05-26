@@ -84,22 +84,23 @@
             <div class="text-subtitle1 text-bold">Question {{ index + 1 }}</div>
       
             <!-- Tampilkan soal berupa teks -->
-            <div v-if="q.type === 'text'" class="q-mt-sm">
+            <div class="q-mt-sm">
               {{ q.question }}
             </div>
-      
-            <!-- Tampilkan soal berupa audio -->
-            <div v-else-if="q.type === 'file'" class="q-mt-sm">
-              <audio controls :src="q.question" style="width: 100%;" />
-            </div>
-      
+
             <!-- Tombol Jawab -->
-            <q-btn
-              label="Jawab"
-              color="primary"
-              class="q-mt-md"
-              @click="goToAnswerPage(q)"
-            />
+            <div class="q-mt-md row items-center justify-between">
+              <q-btn
+                label="Jawab"
+                color="primary"
+                class="q-mt-md"
+                @click="goToAnswerPage(q)"
+              />
+              <!-- Tandai sebagai Lulus -->
+              <div v-if="isPassed[q.id]" class="q-mt-md q-pa-sm text-black-5 bg-green-3 text-bold">
+                Lulus
+              </div>
+            </div>
           </q-card-section>
         </q-card>
       </q-tab-panel>
@@ -127,10 +128,36 @@ const tab = ref('lessons');
 const moduleData = ref(null);
 const lessons = ref([]);
 const quizes = ref([]);
+const isPassed = ref({});  // Menyimpan status lulus untuk setiap quiz
 
 const accessToken = localStorage.getItem('token');
+const userId = Number(localStorage.getItem('id'));
 const moduleId = route.params.id;
 
+// Fungsi untuk memeriksa apakah quiz sudah lulus
+const checkIfQuizPassed = async (quizId) => {
+  try {
+    const response = await axios.get(`${api.API_BASE_URL}/answers`, {
+      headers: { Authorization: `${accessToken}` },
+      params: {
+        quiz_id: quizId,
+        reply_to: userId,
+        is_passed: 1
+      }
+    });
+
+    // Jika ada jawaban yang lulus
+    if (response.data?.data?.length > 0) {
+      isPassed.value[quizId] = true;  // Tandai quiz sebagai "Lulus"
+    } else {
+      isPassed.value[quizId] = false; // Quiz belum lulus
+    }
+  } catch (error) {
+    console.error('Failed to check if quiz is passed:', error);
+  }
+};
+
+// Fungsi untuk navigasi kembali
 const goBack = () => {
   router.go(-1);
 };
@@ -141,16 +168,17 @@ const goToAnswerPage = (question) => {
   });
 };
 
+// Ambil data module, lessons, dan quizzes
 onMounted(async () => {
   try {
     const [moduleRes, lessonsRes, quizRes] = await Promise.all([
-      axios.get(`${api.API_BASE_URL}/modules?id=${moduleId}`, {
+      axios.get(`${api.API_BASE_URL}/modules?id=${moduleId}&is_deleted=0`, {
         headers: { Authorization: `${accessToken}` }
       }),
-      axios.get(`${api.API_BASE_URL}/lessons?module_id=${moduleId}`, {
+      axios.get(`${api.API_BASE_URL}/lessons?module_id=${moduleId}&is_deleted=0`, {
         headers: { Authorization: `${accessToken}` }
       }),
-      axios.get(`${api.API_BASE_URL}/quiz?modules_id=${moduleId}`, {
+      axios.get(`${api.API_BASE_URL}/quiz?modules_id=${moduleId}&is_deleted=0`, {
         headers: { Authorization: `${accessToken}` }
       })
     ]);
@@ -162,6 +190,11 @@ onMounted(async () => {
     moduleData.value = moduleDataArray[0] || null;
     lessons.value = lessonsDataArray;
     quizes.value = quizDataArray;
+
+    // Cek status lulus untuk setiap quiz
+    for (const quiz of quizDataArray) {
+      await checkIfQuizPassed(quiz.id);
+    }
 
   } catch (error) {
     console.error('Failed to fetch data:', error);

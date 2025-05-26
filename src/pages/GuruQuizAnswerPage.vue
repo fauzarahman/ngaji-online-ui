@@ -6,7 +6,6 @@
         <q-btn flat round dense icon="arrow_back" @click="goBack" />
         <q-toolbar-title>{{ quiz?.module_detail.title || 'Quiz Detail' }}</q-toolbar-title>
         
-        
         <q-btn
             flat
             dense
@@ -17,24 +16,38 @@
           >
             <q-menu auto-close>
               <q-list style="min-width: 100px;">
-                <q-item clickable @click="openGradeDialog">
-                  <q-item-section>Beri Nilai</q-item-section>
+                <q-item clickable @click="openConfirmDialog">
+                  <q-item-section>Tandai lulus</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
           </q-btn>
       </q-toolbar>
     </q-header>
+
+     <!-- Dialog Konfirmasi -->
+     <q-dialog v-model="showConfirmDialog">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Konfirmasi</div>
+          <div class="q-mt-sm">Apakah Anda yakin ingin menandai quiz ini sebagai lulus?</div>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Batal" @click="closeConfirmDialog" />
+          <q-btn flat label="Ya" color="primary" @click="tandaiLulus" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
     
     <!-- Question -->
     <div class="q-mt-md">
       <div class="text-h6 q-mb-xs">Question:</div>
       <q-card flat bordered class="q-pa-md">
-        <div v-if="quiz?.type === 'text'">
+        <div>
           {{ quiz?.question }}
         </div>
-        <div v-else-if="quiz?.type === 'file'">
-          <audio :src="getAudioUrl(quiz?.question)" controls v-if="quiz?.question" />
+        <div v-else-if="quiz?.media_id != ''">
+          <audio :src="getAudioUrl(quiz?.media_id)" controls v-if="quiz?.media_id" />
           <div v-else class="text-grey">No audio available.</div>
         </div>
       </q-card>
@@ -114,190 +127,280 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-
-    <!-- Penilaian Dialog -->
-    <q-dialog v-model="showGradeDialog">
-      <q-card>
-        <q-card-section>
-          <div class="text-h6">Penilaian</div>
-          <div class="q-mt-sm">
-            <q-radio v-model="grade" :options="gradeOptions" label="Pilih Penilaian" />
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Batal" @click="closeGradeDialog" />
-          <q-btn flat label="Simpan" color="primary" @click="submitGrade" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
   </q-page>
 </template>
+
 <script setup>
-  import { ref, onMounted } from 'vue';
-  import { useRoute, useRouter } from 'vue-router';
-  import axios from 'axios';
-  import api from 'src/config/api';
-  
-  const route = useRoute();
-  const router = useRouter();
-  
-  const accessToken = localStorage.getItem('token');
-  const userId = Number(localStorage.getItem('id'));
-  const quizId = Number(route.params.idquiz);
-  const santriId = Number(route.params.idsantri);
-  
-  const quiz = ref(null);
-  const answers = ref([]);
-  const answerInput = ref('');
-  const showMenu = ref(false); // Kontrol menu titik tiga
-  const showGradeDialog = ref(false); // Kontrol dialog penilaian
-  const grade = ref(null); // Nilai penilaian yang dipilih
-  const gradeOptions = [
-    { label: 'Lulus', value: 1 },
-    { label: 'Tidak Lulus', value: 0 }
-  ];
-  
-  // Method untuk membuka dialog penilaian
-  const openGradeDialog = () => {
-    showGradeDialog.value = true;
-  };
-  
-  // Method untuk menutup dialog penilaian
-  const closeGradeDialog = () => {
-    showGradeDialog.value = false;
-  };
-  
-  // Method untuk mengirim penilaian
-  const submitGrade = async () => {
-    if (grade.value === null) {
-      console.log("Pilih penilaian terlebih dahulu");
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import axios from 'axios';
+import api from 'src/config/api';
+
+const route = useRoute();
+const router = useRouter();
+
+const accessToken = localStorage.getItem('token');
+const userId = Number(localStorage.getItem('id'));
+const quizId = Number(route.params.idquiz);
+const santriId = Number(route.params.idsantri);
+
+const quiz = ref(null);
+const answers = ref([]);
+const answerInput = ref('');
+const recording = ref(false);
+const recordingDuration = ref(0);
+let mediaRecorder = null;
+let timerInterval = null;
+let chunks = ref([]);
+
+// Dialogs
+const showConfirmDialog = ref(false);  
+const showVoiceDialog = ref(false);
+const dontShowAgain = ref(false);
+const showUnsupportedDialog = ref(false);
+
+const checkVoiceGuide = () => {
+  const dismissed = localStorage.getItem('voiceGuideDismissed');
+  if (!dismissed) {
+    showVoiceDialog.value = true;
+    return false;
+  }
+  return true;
+};
+
+const closeVoiceDialog = () => {
+  if (dontShowAgain.value) {
+    localStorage.setItem('voiceGuideDismissed', 'true');
+  }
+  showVoiceDialog.value = false;
+  startRecording();
+};
+
+const goBack = () => router.go(-1);
+const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
+const formatDate = (str) => new Date(str).toLocaleString();
+const getAudioUrl = (filename) => filename ? `${api.API_BASE_URL}/uploads/${filename}` : '';
+
+const fetchAnswers = async () => {
+  const instructorId = userId;
+  const res = await axios.get(`${api.API_BASE_URL}/answers`, {
+    headers: { Authorization: accessToken },
+    params: {
+      quiz_id: quizId,
+      'user_id[$in]': [santriId, instructorId],
+      '$sort[created_date]': '1'
+    }
+  });
+  answers.value = res.data?.data || [];
+};
+
+const updateCheckedBy = async () => {
+  try {
+    const instructorId = Number(localStorage.getItem('id')); // Get instructor ID from localStorage
+    const userId = santriId; // Get student ID from route params
+
+    // Filter answers that have no checked_by and need to be updated
+    const answersToUpdate = answers.value.filter((answer) => {
+      return answer.user_id === userId && !answer.checked_by; // Only update answers where `checked_by` is empty or null
+    });
+
+    // If there are no answers to update, return early
+    if (answersToUpdate.length === 0) {
+      console.log('No answers to update');
       return;
     }
-  
-    try {
-      const instructorId = Number(quiz.value?.module_detail?.instructor_id);
-      await axios.post(`${api.API_BASE_URL}/answers`, {
-        quiz_id: quizId,
-        user_id: userId,
-        instructor_id: instructorId,
-        reply_to: santriId,
-        answer_type: 'text',
-        answer_value: grade.value === 1 ? 'Selamat anda lulus quiz ini' : 'Mohon maaf anda belum lulus quiz ini',
-        is_passed: grade.value,
-        score: grade.value === 1 ? 100 : 0,
-        review_notes: ""
-      }, {
-        headers: { Authorization: accessToken }
-      });
-  
-      showGradeDialog.value = false; // Menutup dialog setelah disubmit
-      console.log("Penilaian berhasil disimpan");
-    } catch (error) {
-      console.error('Gagal menyimpan penilaian:', error);
-    }
-  };
-  
-  const goBack = () => router.go(-1);
-  const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
-  const formatDate = (str) => new Date(str).toLocaleString();
-  const getAudioUrl = (filename) => filename ? `${api.API_BASE_URL}/uploads/${filename}` : '';
-  
-  const fetchAnswers = async () => {
-    const instructorId = userId;
-    const res = await axios.get(`${api.API_BASE_URL}/answers`, {
-      headers: { Authorization: accessToken },
-      params: {
-        quiz_id: quizId,
-        'user_id[$in]': [santriId, instructorId],
-        '$sort[created_date]': '1'
-      }
-    });
-    answers.value = res.data?.data || [];
-  };
-  
-  const updateCheckedBy = async () => {
-    try {
-      const instructorId = Number(localStorage.getItem('id')); // Get instructor ID from localStorage
-      const userId = santriId; // Get student ID from route params
-  
-      // Filter answers that have no checked_by and need to be updated
-      const answersToUpdate = answers.value.filter((answer) => {
-        return answer.user_id === userId && !answer.checked_by; // Only update answers where `checked_by` is empty or null
-      });
-  
-      // If there are no answers to update, return early
-      if (answersToUpdate.length === 0) {
-        console.log('No answers to update');
-        return;
-      }
-  
-      // Map over the answers that need updating and set `checked_by` to instructorId
-      const updatedAnswers = answersToUpdate.map((answer) => ({
-        checked_by: instructorId, // Only send `checked_by` to update
-      }));
-  
-      // Send update requests to the server for the filtered answers (only send checked_by)
-      const updatePromises = updatedAnswers.map((updatedAnswer, index) =>
-        axios.patch(`${api.API_BASE_URL}/answers/${answersToUpdate[index].id}`, updatedAnswer, {
-          headers: { Authorization: accessToken },
-        })
-      );
-  
-      // Wait for all updates to finish
-      await Promise.all(updatePromises);
-  
-      console.log('Answers updated successfully');
-    } catch (error) {
-      console.error('Failed to update checked_by:', error);
-    }
-  };
-  
-  const submitTextAnswer = async () => {
-    const instructorId = Number(quiz.value?.module_detail?.instructor_id);
-    if (!answerInput.value.trim()) return;
-  
-    try {
-      await axios.post(`${api.API_BASE_URL}/answers`, {
-        quiz_id: quizId,
-        user_id: userId,
-        instructor_id: instructorId,
-        reply_to: santriId,
-        answer_type: 'text',
-        answer_value: answerInput.value.trim(),
-        is_passed: 0,
-        score: 0,
-        review_notes: ""
-      }, {
-        headers: { Authorization: accessToken }
-      });
-  
-      answerInput.value = '';
-      await fetchAnswers();
-    
-      // Update checked_by after submit
-      await updateCheckedBy();
-    } catch (err) {
-      console.error('Submit text answer failed:', err);
-    }
-  };
-  
-  onMounted(async () => {
-    const quizRes = await axios.get(`${api.API_BASE_URL}/quiz?id=${quizId}`, {
+
+    // Map over the answers that need updating and set `checked_by` to instructorId
+    const updatedAnswers = answersToUpdate.map((answer) => ({
+      checked_by: instructorId, // Only send `checked_by` to update
+    }));
+
+    // Send update requests to the server for the filtered answers (only send checked_by)
+    const updatePromises = updatedAnswers.map((updatedAnswer, index) =>
+      axios.patch(`${api.API_BASE_URL}/answers/${answersToUpdate[index].id}`, updatedAnswer, {
+        headers: { Authorization: accessToken },
+      })
+    );
+
+    // Wait for all updates to finish
+    await Promise.all(updatePromises);
+
+    console.log('Answers updated successfully');
+  } catch (error) {
+    console.error('Failed to update checked_by:', error);
+  }
+};
+
+
+
+const submitTextAnswer = async () => {
+  const instructorId = Number(quiz.value?.module_detail?.instructor_id);
+  if (!answerInput.value.trim()) return;
+
+  try {
+    await axios.post(`${api.API_BASE_URL}/answers`, {
+      quiz_id: quizId,
+      user_id: userId,
+      instructor_id: instructorId,
+      reply_to: santriId,
+      answer_type: 'text',
+      answer_value: answerInput.value.trim(),
+      is_passed: 0,
+      score: 0,
+      review_notes: ""
+    }, {
       headers: { Authorization: accessToken }
     });
-    quiz.value = quizRes.data?.data?.[0] || null;
+
+    answerInput.value = '';
+  
+    // Update checked_by after submit
+    await updateCheckedBy();
     await fetchAnswers();
+
+  } catch (err) {
+    console.error('Submit text answer failed:', err);
+  }
+};
+
+// Function to open the confirmation dialog
+const openConfirmDialog = () => {
+  showConfirmDialog.value = true;
+};
+
+// Function to close the confirmation dialog
+const closeConfirmDialog = () => {
+  showConfirmDialog.value = false;
+};
+
+const tandaiLulus= async () => {
+  const instructorId = Number(quiz.value?.module_detail?.instructor_id);
+  try {
+    await axios.post(`${api.API_BASE_URL}/answers`, {
+      quiz_id: quizId,
+      user_id: userId,
+      instructor_id: instructorId,
+      reply_to: santriId,
+      answer_type: 'text',
+      answer_value: "Selamat anda telah lulus Quiz ini",
+      is_passed: 1,
+      score: 100,
+      review_notes: ""
+    }, {
+      headers: { Authorization: accessToken }
+    });
+
+    answerInput.value = '';
+  
+    // Update checked_by after submit
+    await updateCheckedBy();
+    await fetchAnswers();
+    closeConfirmDialog(); // Close the dialog after submission
+  } catch (err) {
+    console.error('Submit text answer failed:', err);
+  }
+};
+
+const startTimer = () => {
+  recordingDuration.value = 0;
+  timerInterval = setInterval(() => {
+    recordingDuration.value += 1;
+  }, 1000);
+};
+
+const stopTimer = () => {
+  clearInterval(timerInterval);
+  timerInterval = null;
+};
+
+const toggleRecording = async () => {
+  if (recording.value) {
+    mediaRecorder?.stop();
+    recording.value = false;
+    stopTimer();
+  } else {
+    const allowed = checkVoiceGuide();
+    if (allowed) {
+      startRecording();
+    }
+  }
+};
+
+const startRecording = async () => {
+  if (typeof MediaRecorder === 'undefined') {
+    showUnsupportedDialog.value = true;
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    chunks.value = [];
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunks.value.push(e.data);
+    };
+    mediaRecorder.onstop = handleRecordingStop;
+    mediaRecorder.start();
+    recording.value = true;
+    startTimer();
+  } catch (err) {
+    console.error('Mic permission error:', err);
+  }
+};
+
+const handleRecordingStop = async () => {
+  const blob = new Blob(chunks.value, { type: 'audio/webm' });
+  const filename = `audio_${userId}_${Date.now()}.webm`;
+  const file = new File([blob], filename, { type: 'audio/webm' });
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const uploadRes = await fetch(`${api.API_BASE_URL}/uploads`, {
+      method: "POST",
+      headers: {
+        Authorization: accessToken
+      },
+      body: formData
+    });
+    const upload = await uploadRes.json();
+    const uploadedFilename = upload?.filename || filename;
+    const instructorId = Number(quiz.value?.module_detail?.instructor_id);
+
+    await axios.post(`${api.API_BASE_URL}/answers`, {
+      quiz_id: quizId,
+      user_id: userId,
+      instructor_id: instructorId,
+      reply_to: santriId,
+      answer_type: 'file',
+      answer_value: uploadedFilename,
+      is_passed: 0,
+      score: 0,
+      review_notes: ""
+    }, {
+      headers: { Authorization: accessToken }
+    });
+    await updateCheckedBy();
+    await fetchAnswers();
+  } catch (err) {
+    console.error("Upload or answer submit failed:", err);
+  }
+};
+
+onMounted(async () => {
+  const quizRes = await axios.get(`${api.API_BASE_URL}/quiz?id=${quizId}`, {
+    headers: { Authorization: accessToken }
   });
+  quiz.value = quizRes.data?.data?.[0] || null;
+  await fetchAnswers();
+});
 </script>
+
 <style scoped>
-  .text-h6 {
-    font-weight: bold;
-  }
-  .q-page {
-    padding-bottom: 100px;
-  }
+.text-h6 {
+  font-weight: bold;
+}
+.q-page {
+  padding-bottom: 100px;
+}
 </style>
-  
-  

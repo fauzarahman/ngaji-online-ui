@@ -8,11 +8,19 @@
         </q-item>
 
         <!-- Menu ini hanya muncul kalau user admin -->
-        <q-item v-if="isAdmin" clickable v-ripple to="/registerguru">
+        <q-item v-if="isAdmin" clickable v-ripple to="/user-form">
           <q-item-section>Pendaftaran Guru</q-item-section>
         </q-item>
 
         <q-separator />
+
+        <!-- Menu ini hanya muncul kalau user guru -->
+        <q-item v-if="isAdmin" clickable v-ripple to="/tajwid">
+          <q-item-section>Tajwid</q-item-section>
+        </q-item>
+
+        <q-separator />
+        
 
         <q-item clickable v-ripple @click="logout">
           <q-item-section avatar>
@@ -31,9 +39,30 @@
     <!-- Fixed Footer with Menu -->
     <q-footer elevated class="bg-green-gradient text-white">
       <q-tabs :model-value="activeTab">
+        <!-- Selalu tampil -->
         <q-tab :name="dashboardUrl" icon="home" @click="$router.push(dashboardUrl)" />
-        <q-tab :name="inboxUrl" icon="email" @click="$router.push(inboxUrl)" />
-        <q-tab name="/about" icon="info" @click="$router.push('/about')" />
+
+        <!-- Tampil hanya untuk non-admin -->
+        <q-tab
+          v-if="!isAdmin"
+          :name="inboxUrl"
+          icon="email"
+          @click="$router.push(inboxUrl)"
+        />
+        <q-tab
+          v-if="!isAdmin"
+          name="/donasi"
+          icon="wallet"
+          @click="$router.push('/donasi')"
+        />
+        <q-tab
+          v-if="isSantri"
+          name="/profile"
+          icon="person"
+          @click="$router.push('/profile')"
+        />
+
+        <!-- Selalu tampil -->
         <q-tab name="/settings" icon="settings" @click="toggleRightDrawer" />
       </q-tabs>
     </q-footer>
@@ -41,67 +70,70 @@
 </template>
 
 <script>
-import { computed, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'MainLayout',
   setup() {
-    const rightDrawerOpen = ref(false);
-    const router = useRouter();
+    const rightDrawerOpen = ref(false)
+    const router = useRouter()
 
     // Ambil role user dari localStorage
-    const role = localStorage.getItem('role');
+    const role = localStorage.getItem('role')
 
     // Hitung dashboard URL sesuai role
     const dashboardUrl = computed(() => {
       switch (role) {
         case 'santri':
-          return '/dashboardsantri';
+          return '/dashboardsantri'
         case 'guru':
-          return '/dashboardguru';
+          return '/dashboardguru'
         case 'admin':
-          return '/dashboardadmin';
+          return '/dashboardadmin'
         default:
-          return '/dashboard';
+          return '/dashboard'
       }
-    });
+    })
 
     const inboxUrl = computed(() => {
       switch (role) {
         case 'santri':
-          return '/santri-inbox';
+          return '/santri-inbox'
         case 'guru':
-          return '/guru-inbox';
+          return '/guru-inbox'
         case 'admin':
-          return '/dashboardadmin';
+          return '/dashboardadmin' // fallback, tab ini disembunyikan untuk admin
         default:
-          return '/santri-inbox';
+          return '/santri-inbox'
       }
-    });
+    })
 
-    const activeTab = computed(() => router.currentRoute.value.path);
+    const activeTab = computed(() => router.currentRoute.value.path)
+    const isAdmin = computed(() => role === 'admin')
+    const isGuru = computed(() => role === 'guru')
+    const isSantri = computed(() => role === 'santri')
 
     const toggleRightDrawer = () => {
-      rightDrawerOpen.value = !rightDrawerOpen.value;
-    };
-
-    const isAdmin = computed(() => role === 'admin');
+      rightDrawerOpen.value = !rightDrawerOpen.value
+    }
 
     const logout = () => {
-      localStorage.clear();
-      router.push('/');
-    };
+      localStorage.clear()
+      router.push('/')
+    }
 
     return {
-      activeTab,
       rightDrawerOpen,
       toggleRightDrawer,
       logout,
       isAdmin,
+      isGuru,
+      isSantri,
       dashboardUrl,
-      inboxUrl
-    };
+      inboxUrl,
+      activeTab
+    }
   }
-};
-</script> 
+}
+</script>

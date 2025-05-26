@@ -1,5 +1,4 @@
-const API_BASE_URL = "https://192.168.1.87:3030";
-
 export default {
-    API_BASE_URL
+    API_BASE_URL : "https://localhost:3030",
+    API_UPLOADS_URL: 'https://localhost:3030/uploads'
 };

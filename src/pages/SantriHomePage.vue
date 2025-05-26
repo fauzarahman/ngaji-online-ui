@@ -29,14 +29,29 @@
             v-for="log in continueWatching.slice(0, 6)" 
             :key="log.id"
             class="q-mr-md card-style"
-            @click="$router.push(`/lesson/${log.parent_id}`)"
+            :class="{ 'disabled-card': log.module_detail.is_deleted === 1 }"
+            @click="log.module_detail.is_deleted !== 1 && $router.push(`/lesson/${log.parent_id}`)"
           >
-            <q-img :src="log.module_detail.thumbnail || 'https://placehold.co/80'" class="card-img" />
+            <q-img :src="'https://placehold.co/80'" class="card-img" />
             <q-card-section>
               <div class="text-bold">{{ log.module_detail.title || 'Untitled Module' }}</div>
-              <div class="text-grey text-caption">By {{ log.module_detail.instructor_profile?.display_name || 'Unknown' }}</div>
+              <div class="text-grey text-caption">
+                By {{ log.module_detail.instructor_profile?.display_name || 'Unknown' }}
+              </div>
+
               <q-linear-progress :value="log.last_position / log.duration" color="green" class="q-mt-xs" />
-              <div class="text-caption text-grey">{{ Math.floor((log.last_position / log.duration) * 100) || 0 }}% Completed</div>
+              <div class="text-caption text-grey">
+                {{ Math.floor((log.last_position / log.duration) * 100) || 0 }}% Completed
+              </div>
+
+              <!-- ⛔ Pelatihan dihapus notice -->
+              <div
+                v-if="log.module_detail.is_deleted === 1"
+                class="bg-red text-white text-caption text-center q-mt-sm"
+                style="padding: 4px; border-radius: 4px;opacity: 75%;"
+              >
+                Pelatihan dihapus
+              </div>
             </q-card-section>
           </q-card>
         </div>
@@ -114,7 +129,7 @@ const fetchModules = async (sectionId) => {
   try {
     const res = await axios.get(`${api.API_BASE_URL}/modules`, {
       headers: { Authorization: ` ${accessToken}` },
-      params: { section_id: sectionId, instructor_id: profile.id }
+      params: { section_id: sectionId, instructor_id: profile.id, is_deleted: 0 }
     });
     modulesMap.value[sectionId] = res.data.data || [];
   } catch (err) {

@@ -99,7 +99,7 @@ const handleLogin = async () => {
 
     // Redirect ke dashboard
     if(user.role == "admin"){
-      router.push("/dashboard");
+      router.push("/dashboardadmin");
     }else if(user.role == "guru"){
       router.push("/dashboardguru");
     }else{
