@@ -27,7 +27,7 @@
           <q-input v-model="form.display_name" label="Nama Lengkap" filled />
           <q-input v-model="form.jobtitle" label="Pekerjaan / Kegiatan" filled />
           <q-input v-model="form.tagline" label="Tagline (Opsional)" filled />
-          <q-input v-model="form.about_me" label="Tentang Saya" filled type="textarea" />
+          <q-input v-model="form.about_me" label="Tentang Saya" filled type="textarea" rows="2"/>
           <q-input v-model="form.skills" label="Keahlian (pisahkan dengan koma)" filled />
 
           <div class="row justify-end q-gutter-sm">

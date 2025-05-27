@@ -192,31 +192,54 @@
   }
   
   const viewDonation = (donation) => {
-  $q.dialog({
-    title: 'Detail Donasi',
-    message: `
-      <div>
-        <strong>Nama:</strong> ${donation.account_name}<br>
-        <strong>Bank:</strong> ${donation.bank_name}<br>
-        <strong>Rekening:</strong> ${donation.source_bank}<br>
-        <strong>Nominal:</strong> Rp ${Number(donation.amount).toLocaleString('id-ID')}<br>
-        <br>
-        <img
-          src="${API_UPLOADS_URL}/${donation.proof_image}"
-          alt="Bukti Transfer"
-          style="max-width: 100%; border-radius: 8px;"
-        />
-      </div>
-    `,
-    html: true,
-    ok: {
-      label: 'Tutup',
-      color: 'primary'
-    }
-  })
-}
+    $q.dialog({
+      title: 'Detail Donasi',
+      message: `
+        <div>
+          <strong>Nama:</strong> ${donation.account_name}<br>
+          <strong>Bank:</strong> ${donation.bank_name}<br>
+          <strong>Rekening:</strong> ${donation.source_bank}<br>
+          <strong>Nominal:</strong> Rp ${Number(donation.amount).toLocaleString('id-ID')}<br>
+          <strong>Status:</strong> ${donation.is_verified ? '<span style="color:green">Terverifikasi</span>' : '<span style="color:red">Belum diverifikasi</span>'}
+          <br><br>
+          <img
+            src="${API_UPLOADS_URL}/${donation.proof_image}"
+            alt="Bukti Transfer"
+            style="max-width: 100%; border-radius: 8px;"
+          />
+        </div>
+      `,
+      html: true,
+      ok: {
+        label: 'Tutup',
+        color: 'primary'
+      },
+      cancel: !donation.is_verified
+        ? {
+            label: 'Verifikasi Donasi',
+            color: 'green'
+          }
+        : undefined
+    }).onCancel(async () => {
+      // Jalankan verifikasi saat tombol cancel ditekan (karena dipakai untuk tombol hijau)
+      try {
+        await axios.patch(`${api.API_BASE_URL}/donations/${donation.id}`, {
+          is_verified: 1
+        }, {
+          headers: {
+            Authorization: ` ${accessToken}`
+          }
+        })
 
-  
+        $q.notify({ type: 'positive', message: 'Donasi berhasil diverifikasi' })
+        fetchDonations()
+      } catch (err) {
+        console.error('Gagal verifikasi donasi:', err)
+        $q.notify({ type: 'negative', message: 'Gagal memverifikasi donasi' })
+      }
+    })
+  }
+
   // Actions
   const onAddGuru = () => router.push('/user-form')
   const editGuru = (guru) => router.push(`/user-form/${guru.id}`)

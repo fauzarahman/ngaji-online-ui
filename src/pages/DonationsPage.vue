@@ -56,7 +56,16 @@
               <q-item-label caption>
                 {{ formatDate(item.created_at) }}
               </q-item-label>
-            </q-item-section>
+            
+              <q-badge
+                outline
+                :color="item.is_verified ? 'green' : 'red'"
+                class="q-mt-sm"
+                align="left"
+              >
+                {{ item.is_verified ? 'Terverifikasi' : 'Belum Diverifikasi' }}
+              </q-badge>
+            </q-item-section>            
           </q-item>
         </q-list>
       </q-card-section>
@@ -84,7 +93,8 @@ const form = ref({
   bank_name: '',
   source_bank: '',
   amount: '',
-  proof: null
+  proof: null,
+  is_verified: 0
 })
 
 const history = ref([])
@@ -127,7 +137,8 @@ const submitForm = async () => {
       bank_name: form.value.bank_name,
       source_bank: form.value.source_bank,
       amount: Number(form.value.amount),
-      proof_image: proofFilename
+      proof_image: proofFilename,
+      is_verified : form.value.is_verified
     }, {
       headers: {
         Authorization: ` ${accessToken}`
@@ -141,7 +152,8 @@ const submitForm = async () => {
       bank_name: '',
       source_bank: '',
       amount: '',
-      proof: null
+      proof: null,
+      is_verified : 0
     }
     if (formRef.value) formRef.value.resetValidation()
   } catch (err) {
