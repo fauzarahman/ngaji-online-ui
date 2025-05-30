@@ -46,7 +46,7 @@
         <div>
           {{ quiz?.question }}
         </div>
-        <div v-else-if="quiz?.media_id != ''">
+        <div v-if="quiz?.media_id != ''">
           <audio :src="getAudioUrl(quiz?.media_id)" controls v-if="quiz?.media_id" />
           <div v-else class="text-grey">No audio available.</div>
         </div>

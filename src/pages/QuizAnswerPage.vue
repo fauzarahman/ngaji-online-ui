@@ -164,7 +164,7 @@ const fetchAnswers = async () => {
 const updateCheckedBy = async () => {
   try {// Filter answers that have no checked_by and need to be updated
     const answersToUpdate = answers.value.filter((answer) => {
-      return answer.user_id === userId && !answer.checked_by; // Only update answers where `checked_by` is empty or null
+      return answer.reply_to === userId && !answer.checked_by; // Only update answers where `checked_by` is empty or null
     });
 
     // If there are no answers to update, return early

@@ -1,7 +1,7 @@
 <template>
     <q-page padding class="bg-white">
       <div class="text-h6 text-center q-mb-md" style="font-weight: 600;">
-        Inbox Voice Note
+        Inbox
       </div>
   
       <q-input

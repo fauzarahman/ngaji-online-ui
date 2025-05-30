@@ -257,11 +257,11 @@ const routes = [
     }
   },
   {
-    path: '/quiz-answer',
+    path: '/quiz-answer/:id?/:idsantri?',
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { 
-        path: ':id', 
+        path: '', 
         name: 'quiz-answer',
         component: () => import('pages/QuizAnswerPage.vue')
       }
