@@ -7,13 +7,34 @@
           Welcome <span class="text-primary">{{ profile.display_name || 'Guest' }}</span>
         </h5>               
       </div>
-      <q-btn flat dense round icon="notifications" class="q-mr-sm" />
+      <q-avatar size="36px" class="q-mr-sm" @click="$router.push('/profile')">
+        <img :src="profile.avatar ? api.API_UPLOADS_URL + '/' + profile.avatar : 'https://placehold.co/100?text=👤'" alt="Avatar" />
+      </q-avatar>
     </div>
     
     <!-- Search Bar -->
-    <q-input rounded outlined dense placeholder="Search Here">
+    <q-input
+      v-model="searchText"
+      rounded
+      outlined
+      dense
+      placeholder="Cari Tajwid..."
+      debounce="300"
+      @keyup.enter="fetchSections"
+      class="q-mt-md q-mb-sm"
+    >
       <template v-slot:prepend>
         <q-icon name="search" />
+      </template>
+      <template v-slot:append>
+        <q-btn
+          v-if="searchText"
+          flat
+          dense
+          round
+          icon="clear"
+          @click="() => { searchText = ''; fetchSections(); }"
+        />
       </template>
     </q-input>
 
@@ -38,13 +59,10 @@
               <div class="text-grey text-caption">
                 By {{ log.module_detail.instructor_profile?.display_name || 'Unknown' }}
               </div>
-
               <q-linear-progress :value="log.last_position / log.duration" color="green" class="q-mt-xs" />
               <div class="text-caption text-grey">
                 {{ Math.floor((log.last_position / log.duration) * 100) || 0 }}% Completed
               </div>
-
-              <!-- ⛔ Pelatihan dihapus notice -->
               <div
                 v-if="log.module_detail.is_deleted === 1"
                 class="bg-red text-white text-caption text-center q-mt-sm"
@@ -58,11 +76,10 @@
       </q-scroll-area>
     </div>
 
-    <!-- Section with hardcoded name 'Tajwid' and loop courses -->
+    <!-- Section List -->
     <div class="q-mt-lg">
       <h6 class="text-bold q-mb-sm">Tajwid</h6>
 
-      <!-- Loop through courses of section 'Tajwid' -->
       <q-expansion-item
         v-for="section in sections"
         :key="section.id"
@@ -79,7 +96,6 @@
           </div>
         </template>
 
-        <!-- List modules fetched for each course -->
         <q-list bordered separator class="bg-white q-pa-sm rounded-borders shadow-1">
           <q-item v-if="!modulesMap[section.id]">
             <q-item-section>Loading modules...</q-item-section>
@@ -120,16 +136,39 @@ const courses = ref([]);
 const sections = ref([]);
 const continueWatching = ref([]);
 const modulesMap = ref({});
+const searchText = ref('');
 const accessToken = localStorage.getItem('token');
 const userId = Number(localStorage.getItem('id'));
 
+// Fetch filtered or all sections
+const fetchSections = async () => {
+  try {
+    const params = {};
+    if (searchText.value.trim()) {
+      params['section_name[$like]'] = `%${String(searchText.value.trim())}%`;
+    }
+
+    const sectionsRes = await axios.get(`${api.API_BASE_URL}/sections`, {
+      headers: { Authorization: ` ${accessToken}` },
+      params
+    });
+
+    sections.value = sectionsRes.data.data || [];
+  } catch (e) {
+    console.error('Failed to fetch sections:', e);
+    sections.value = [];
+  }
+};
+
+
+// Fetch modules for specific section
 const fetchModules = async (sectionId) => {
   if (modulesMap.value[sectionId]) return;
 
   try {
     const res = await axios.get(`${api.API_BASE_URL}/modules`, {
       headers: { Authorization: ` ${accessToken}` },
-      params: { section_id: sectionId, instructor_id: profile.id, is_deleted: 0 }
+      params: { section_id: sectionId, instructor_id: profile.value.id, is_deleted: 0 }
     });
     modulesMap.value[sectionId] = res.data.data || [];
   } catch (err) {
@@ -148,17 +187,8 @@ onMounted(async () => {
     }
   }
 
-  // Fetch sections first
-  try {
-    const sectionsRes = await axios.get(`${api.API_BASE_URL}/sections`, {
-      headers: { Authorization: ` ${accessToken}` }
-    });
-    sections.value = sectionsRes.data.data || [];
-  } catch (e) {
-    console.error('Failed to fetch sections:', e);
-  }
+  await fetchSections();
 
-  // Fetch courses and video logs in parallel
   const [modulesResult, logsResult] = await Promise.allSettled([
     axios.get(`${api.API_BASE_URL}/modules`, {
       headers: { Authorization: ` ${accessToken}` }
@@ -172,8 +202,6 @@ onMounted(async () => {
   if (modulesResult.status === 'fulfilled') {
     const { data: modulesData } = modulesResult.value.data;
     courses.value = modulesData;
-  } else {
-    console.error('Failed to fetch modules:', modulesResult.reason);
   }
 
   if (logsResult.status === 'fulfilled') {
@@ -181,8 +209,6 @@ onMounted(async () => {
     continueWatching.value = videoLogs
       .filter(v => v.is_complete === 0)
       .sort((a, b) => new Date(b.updated_date) - new Date(a.updated_date));
-  } else {
-    console.error('Failed to fetch videologs:', logsResult.reason);
   }
 });
 </script>
@@ -196,7 +222,6 @@ onMounted(async () => {
 .card-img {
   height: 80px;
 }
-
 .module-item {
   transition: background-color 0.2s;
   border-radius: 8px;
