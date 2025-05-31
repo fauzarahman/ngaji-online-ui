@@ -37,7 +37,7 @@
                 <q-item clickable @click="editGuru(guru)">
                   <q-item-section>Edit</q-item-section>
                 </q-item>
-                <q-item clickable @click="deleteCourse(guru)">
+                <q-item clickable @click="deleteGuru(guru)">
                   <q-item-section>Delete</q-item-section>
                 </q-item>
               </q-list>
@@ -243,9 +243,54 @@
   // Actions
   const onAddGuru = () => router.push('/user-form')
   const editGuru = (guru) => router.push(`/user-form/${guru.id}`)
-  const deleteCourse = (guru) => {
-    console.log('Delete guru:', guru)
+  const deleteGuru = async (guru) => {
+    $q.dialog({
+      title: 'Konfirmasi Hapus',
+      message: `Apakah Anda yakin ingin menghapus guru <strong>${guru.email}</strong>?`,
+      html: true,
+      cancel: {
+        label: 'Batal',
+        color: 'grey'
+      },
+      ok: {
+        label: 'Hapus',
+        color: 'red'
+      },
+      persistent: true
+    }).onOk(async () => {
+      try {
+        // 1. Ambil profile guru berdasarkan user_id
+        const profileRes = await axios.get(`${api.API_BASE_URL}/profiles`, {
+          headers: { Authorization: ` ${accessToken}` },
+          params: { user_id: guru.id }
+        })
+
+        const profileId = profileRes.data.data?.[0]?.id
+        if (profileId) {
+          // 2. Hapus profile berdasarkan ID
+          await axios.delete(`${api.API_BASE_URL}/profiles/${profileId}`, {
+            headers: { Authorization: ` ${accessToken}` }
+          })
+        }
+
+        // 3. Hapus akun user guru
+        await axios.delete(`${api.API_BASE_URL}/users/${guru.id}`, {
+          headers: { Authorization: ` ${accessToken}` }
+        })
+
+        // 4. Update tampilan lokal
+        gurus.value = gurus.value.filter(g => g.id !== guru.id)
+
+        $q.notify({ type: 'positive', message: 'Guru berhasil dihapus' })
+      } catch (err) {
+        console.error('Gagal menghapus guru:', err)
+        $q.notify({ type: 'negative', message: 'Gagal menghapus guru' })
+      }
+    })
   }
+
+
+
 </script>
   
 <style scoped>
