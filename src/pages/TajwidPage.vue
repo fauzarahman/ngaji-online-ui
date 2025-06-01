@@ -242,10 +242,6 @@
     const editTajwid = (tajwid) => {
       router.push(`/tajwid-form/${tajwid.id}`);
     };
-    
-    const deleteTajwid = (tajwid) => {
-      console.log('Delete tajwid:', tajwid);
-    };
   
     const editQuiz = (quiz) => {
       router.push(`/quiz-form/${quiz.id}`);
@@ -259,10 +255,10 @@
       router.push(`/lesson-form/${lesson.id}`);
     };
   
-    const deleteLesson = (lesson) => {
+    const deleteTajwid = (section) => {
       $q.dialog({
         title: 'Konfirmasi',
-        message: 'Apakah anda yakin akan menghapus Pelatihan ini?',
+        message: 'Apakah anda yakin akan menghapus Tajwid ini?',
         ok: {
           label: 'Ya',
           color: 'primary'
@@ -276,13 +272,13 @@
           is_deleted : 1
         }
         
-        await axios.patch(`${api.API_BASE_URL}/lessons/${lesson.id}`, payload, {
+        await axios.delete(`${api.API_BASE_URL}/sections/${section.id}`, {
           headers: { Authorization: ` ${localStorage.getItem('token')}` }
         })
   
         $q.dialog({
           title: 'Berhasil',
-          message: 'Pelatihan berhasil dihapus',
+          message: 'Tajwid berhasil dihapus',
           ok: {
             label: 'OK',
             color: 'primary'
@@ -292,7 +288,7 @@
         })
   
       }).onCancel(() => {
-        console.log('Cancel Delete lesson:')
+        console.log('Cancel Delete Tajwid:')
       })
     }
   
