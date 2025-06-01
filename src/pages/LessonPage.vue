@@ -13,6 +13,7 @@
         ref="videoPlayer"
         class="video-js vjs-default-skin vjs-big-play-centered"
         playsinline
+        allowfullscreen
       ></video>
     </div>
 

@@ -104,10 +104,10 @@ const sectionsOptions = ref([])
 
 const form = ref({
   id: null,
-  title: '',
-  description: '',
-  video_header_id: '',
-  thumbnail: '',
+  title: "",
+  description: "",
+  video_header_id: "",
+  thumbnail: "",
   thumbnailFile: null,
   section_id: null,
   instructor_id: localStorage.getItem('id') || null,
@@ -169,7 +169,7 @@ const submitForm = async () => {
 
     const payload = {
       title: form.value.title,
-      description: form.value.description,
+      description: form.value.description || "",
       video_header_id: form.value.video_header_id,
       thumbnail: form.value.thumbnail,
       section_id: Number(form.value.section_id),
