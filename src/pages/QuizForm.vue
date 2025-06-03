@@ -138,7 +138,7 @@ const onFileChange = (files) => {
 const fetchModules = async () => {
   try {
     const res = await axios.get(`${api.API_BASE_URL}/modules`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      headers: { Authorization: `${localStorage.getItem("token")}` },
       params: { instructor_id: form.value.instructor_id },
     });
     modulesOptions.value = res.data.data || []
@@ -154,7 +154,7 @@ const fetchQuizData = async () => {
     loading.value = true
     try {
       const res = await axios.get(`${api.API_BASE_URL}/quiz/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `${localStorage.getItem("token")}` },
       });
       const data = res.data
       form.value.id = data.id
@@ -189,7 +189,7 @@ const submitForm = async () => {
       const fileRes = await axios.post(`${api.API_BASE_URL}/uploads`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `${localStorage.getItem("token")}`,
         },
       })
       payload.media_id = fileRes.data.filename
@@ -199,11 +199,11 @@ const submitForm = async () => {
 
     if (isEdit.value) {
       await axios.patch(`${api.API_BASE_URL}/quiz/${form.value.id}`, payload, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `${localStorage.getItem("token")}` },
       })
     } else {
       await axios.post(`${api.API_BASE_URL}/quiz`, payload, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `${localStorage.getItem("token")}` },
       })
     }
 

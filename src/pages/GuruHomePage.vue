@@ -44,7 +44,7 @@
                 <q-item clickable @click="editCourse(course)">
                   <q-item-section>Edit</q-item-section>
                 </q-item>
-                <q-item clickable @click="deleteCourse(course)">
+                <q-item clickable @click="deleteModul(course)">
                   <q-item-section>Delete</q-item-section>
                 </q-item>
               </q-list>
@@ -359,8 +359,42 @@
     router.push(`/module-form/${course.id}`);
   };
   
-  const deleteCourse = (course) => {
-    console.log('Delete course:', course);
+  const deleteModul = (module) => {
+    console.log('Delete modul:', module);
+    $q.dialog({
+      title: 'Konfirmasi',
+      message: 'Apakah anda yakin akan menghapus Modul ini?',
+      ok: {
+        label: 'Ya',
+        color: 'primary'
+      },
+      cancel: {
+        label: 'Kembali',
+        color: 'red'
+      }
+    }).onOk(async () => {
+      const payload = {
+        is_deleted : 1
+      }
+      
+      await axios.patch(`${api.API_BASE_URL}/modules/${module.id}`, payload, {
+        headers: { Authorization: ` ${localStorage.getItem('token')}` }
+      })
+
+      $q.dialog({
+        title: 'Berhasil',
+        message: 'Modul berhasil dihapus',
+        ok: {
+          label: 'OK',
+          color: 'primary'
+        }
+      }).onOk(() => {
+        location.reload()
+      })
+
+    }).onCancel(() => {
+      console.log('Cancel Delete modul:')
+    })
   };
 
   const editQuiz = (quiz) => {
@@ -369,6 +403,40 @@
   
   const deleteQuiz = (quiz) => {
     console.log('Delete quiz:', quiz);
+    $q.dialog({
+      title: 'Konfirmasi',
+      message: 'Apakah anda yakin akan menghapus Quiz ini?',
+      ok: {
+        label: 'Ya',
+        color: 'primary'
+      },
+      cancel: {
+        label: 'Kembali',
+        color: 'red'
+      }
+    }).onOk(async () => {
+      const payload = {
+        is_deleted : 1
+      }
+      
+      await axios.patch(`${api.API_BASE_URL}/quiz/${quiz.id}`, payload, {
+        headers: { Authorization: ` ${localStorage.getItem('token')}` }
+      })
+
+      $q.dialog({
+        title: 'Berhasil',
+        message: 'Quiz berhasil dihapus',
+        ok: {
+          label: 'OK',
+          color: 'primary'
+        }
+      }).onOk(() => {
+        location.reload()
+      })
+
+    }).onCancel(() => {
+      console.log('Cancel Delete quiz:')
+    })
   };
 
   const editLesson = (lesson) => {

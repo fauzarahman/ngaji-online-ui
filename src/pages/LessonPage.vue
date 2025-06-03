@@ -20,7 +20,7 @@
     <!-- Instructor Profile -->
     <div class="q-mt-md q-px-sm q-pb-md row items-center">
       <q-avatar size="50px">
-        <img src="https://placehold.co/100" />
+        <img :src="lessons?.module_detail?.instructor_profile?.avatar ? api.API_UPLOADS_URL + '/' +lessons?.module_detail?.instructor_profile?.avatar : 'https://placehold.co/100'" />
       </q-avatar>
       <div class="q-ml-md">
         <div class="text-bold text-dark">

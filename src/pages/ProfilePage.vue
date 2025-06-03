@@ -142,7 +142,7 @@ const onAvatarChange = (files) => {
 const loadProfile = async () => {
   try {
     const res = await axios.get(`${API_BASE_URL}/profiles`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: { Authorization: `${accessToken}` },
       params: { user_id: userId }
     })
 
@@ -195,7 +195,7 @@ const submitProfile = async () => {
     }
 
     await axios.patch(`${API_BASE_URL}/profiles/${form.value.id}`, payload, {
-      headers: { Authorization: `Bearer ${accessToken}` }
+      headers: { Authorization: `${accessToken}` }
     })
 
     $q.dialog({
@@ -225,7 +225,7 @@ const loadVideoHistory = async () => {
   loadingHistory.value = true
   try {
     const res = await axios.get(`${API_BASE_URL}/videologs`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: { Authorization: `${accessToken}` },
       params: {
         user_id: userId,
         $skip: skipHistory.value,
@@ -254,7 +254,7 @@ const loadQuizHistory = async () => {
   try {
     const res = await axios.get(`${API_BASE_URL}/answers`, {
       headers: {
-        Authorization: `Bearer ${accessToken}`
+        Authorization: `${accessToken}`
       },
       params: {
         $or: [

@@ -60,7 +60,7 @@
       loading.value = true
       try {
         const res = await axios.get(`${api.API_BASE_URL}/sections/${id}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `${localStorage.getItem("token")}` },
         });
         const data = res.data
         form.value.id = data.id
@@ -85,11 +85,11 @@
   
       if (isEdit.value) {
         await axios.patch(`${api.API_BASE_URL}/sections/${form.value.id}`, payload, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `${localStorage.getItem("token")}` },
         })
       } else {
         await axios.post(`${api.API_BASE_URL}/sections`, payload, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `${localStorage.getItem("token")}` },
         })
       }
   

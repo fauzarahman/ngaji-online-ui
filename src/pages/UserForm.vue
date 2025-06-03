@@ -90,6 +90,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
+import axios from "axios";
 import api from 'src/config/api'
 
 const $q = useQuasar()
@@ -134,7 +135,7 @@ const emailErrorMsg = ref('')
 const checkEmailExists = async (email) => {
   try {
     const res = await fetch(`${api.API_BASE_URL}/users?email=${encodeURIComponent(email)}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      headers: { Authorization: `${localStorage.getItem('token')}` }
     })
     const data = await res.json()
     return Array.isArray(data.data) && data.data.length > 0
@@ -198,7 +199,6 @@ const submitForm = async () => {
     }
 
     const profilePayload = {
-      user_id: userId,
       display_name: form.value.display_name,
       jobtitle: form.value.jobtitle,
       avatar: uploadedAvatar
@@ -209,7 +209,7 @@ const submitForm = async () => {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem("token")}`
+          Authorization: `${localStorage.getItem("token")}`
         },
         body: JSON.stringify(profilePayload)
       })
@@ -218,7 +218,7 @@ const submitForm = async () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem("token")}`
+          Authorization: `${localStorage.getItem("token")}`
         },
         body: JSON.stringify(profilePayload)
       })
@@ -250,8 +250,12 @@ onMounted(async () => {
   const id = route.params.id
   if (id) {
     try {
-      const res = await fetch(`${api.API_BASE_URL}/profiles/${id}`)
-      const data = await res.json()
+      const res = await axios.get(`${api.API_BASE_URL}/profiles?user_id=${id}`, {
+        headers: { Authorization: `${localStorage.getItem("token")}` },
+      });
+      const data = res.data.data[0]
+      console.log("cok",data);
+      
       form.value.id = data.id
       form.value.email = data.user?.email || ''
       form.value.display_name = data.display_name

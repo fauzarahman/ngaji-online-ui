@@ -27,7 +27,7 @@
     <!-- Instructor Profile -->
     <q-card flat bordered class="q-mt-md q-pa-md row items-center">
       <q-avatar size="50px">
-        <img src="https://placehold.co/100" />
+        <img :src="moduleData?.instructor_profile?.avatar ? api.API_UPLOADS_URL + '/' +moduleData?.instructor_profile?.avatar : 'https://placehold.co/100'" />
       </q-avatar>
       <div class="q-ml-md">
         <div class="text-bold text-dark">{{ moduleData?.instructor_profile?.display_name || '' }}</div>
@@ -61,7 +61,7 @@
         >
           <q-item>
             <q-item-section avatar>
-              <q-img src="https://placehold.co/100x70" class="lesson-thumbnail">
+              <q-img :src="lesson?.thumbnail ? api.API_UPLOADS_URL + '/' + lesson?.thumbnail :  'https://placehold.co/100x70'" class="lesson-thumbnail">
                 <q-icon name="play_circle" class="play-icon" />
               </q-img>
             </q-item-section>

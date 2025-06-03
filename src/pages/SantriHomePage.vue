@@ -41,8 +41,7 @@
     <!-- Continue Watching -->
     <div v-if="continueWatching.length > 0" style="margin-bottom: -20px;">
       <div class="row justify-between items-center" style="margin-top: -20px;">
-        <h6 class="text-bold">Continue Watching</h6>
-        <q-btn flat dense label="See All" color="grey-8" />
+        <h6 class="text-bold">Lanjutkan Pembelajaran</h6>
       </div>
       <q-scroll-area style="height: 220px;margin-top: -20px;">
         <div class="row no-wrap">
@@ -53,11 +52,11 @@
             :class="{ 'disabled-card': log.module_detail.is_deleted === 1 }"
             @click="log.module_detail.is_deleted !== 1 && $router.push(`/lesson/${log.parent_id}`)"
           >
-            <q-img :src="'https://placehold.co/80'" class="card-img" />
+            <q-img :src="log.module_detail.thumbnail ? api.API_UPLOADS_URL + '/' + log.module_detail.thumbnail : 'https://placehold.co/80'" class="card-img" />
             <q-card-section>
               <div class="text-bold">{{ log.module_detail.title || 'Untitled Module' }}</div>
               <div class="text-grey text-caption">
-                By {{ log.module_detail.instructor_profile?.display_name || 'Unknown' }}
+                By {{ log.module_detail.module_detail.instructor_profile?.display_name || 'Unknown' }}
               </div>
               <q-linear-progress :value="log.last_position / log.duration" color="green" class="q-mt-xs" />
               <div class="text-caption text-grey">
