@@ -1,13 +1,15 @@
 <template>
   <div class="q-pa-md">
     <!-- Welcome Section -->
-    <div class="row items-center hp-profil-header q-mb-md">
+    <div class="row items-center hp-profil-header">
       <div class="col">
         <h5 class="text-bold">
           Welcome <span class="text-primary">{{ profile.display_name || 'Guest' }}</span>
-        </h5>
+        </h5>               
       </div>
-      <q-btn flat dense round icon="notifications" class="q-mr-sm" />
+      <q-avatar size="36px" class="q-mr-sm" @click="$router.push('/profile')">
+        <img :src="profile.avatar ? api.API_UPLOADS_URL + '/' + profile.avatar : 'https://placehold.co/100?text=👤'" alt="Avatar" />
+      </q-avatar>
     </div>
 
     <!-- Header -->

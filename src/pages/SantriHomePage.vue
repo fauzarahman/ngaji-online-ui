@@ -77,7 +77,7 @@
 
     <!-- Section List -->
     <div class="q-mt-lg">
-      <h6 class="text-bold q-mb-sm">Tajwid</h6>
+      <h6 class="text-bold q-mb-sm">List Hukum Tajwid</h6>
 
       <q-expansion-item
         v-for="section in sections"
@@ -107,11 +107,6 @@
             @click="$router.push(`/module/${module.id}`)"
             class="module-item q-mb-xs"
           >
-            <q-item-section avatar>
-              <q-avatar square>
-                <img :src="module.thumbnail || 'https://placehold.co/60'" />
-              </q-avatar>
-            </q-item-section>
             <q-item-section>
               <q-item-label class="text-bold">{{ module.title }}</q-item-label>
             </q-item-section>

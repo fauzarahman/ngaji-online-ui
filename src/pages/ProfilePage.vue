@@ -198,6 +198,22 @@ const submitProfile = async () => {
       headers: { Authorization: `${accessToken}` }
     })
 
+    // Update localStorage after successful PATCH
+    const currentProfile = JSON.parse(localStorage.getItem('profile')) || {}
+
+    const updatedProfile = {
+      ...currentProfile,
+      display_name: payload.display_name,
+      jobtitle: payload.jobtitle,
+      tagline: payload.tagline,
+      about_me: payload.about_me,
+      skills: payload.skills,
+      avatar: avatarFilename,
+      updated_date: new Date().toISOString()
+    }
+
+    localStorage.setItem('profile', JSON.stringify(updatedProfile))
+
     $q.dialog({
       title: 'Berhasil',
       message: 'Profil berhasil diperbarui.',

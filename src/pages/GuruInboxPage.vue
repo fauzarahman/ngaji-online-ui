@@ -5,18 +5,17 @@
       </div>
   
       <q-input
-        dense
         rounded
-        filled
+        outlined
+        dense
         placeholder="Search Here"
         v-model="search"
         debounce="300"
         clearable
-        class="shadow-1"
         prepend-inner-icon="search"
         style="max-width: 400px; margin: 0 auto 20px;"
       />
-  
+
       <q-list bordered separator class="shadow-1" style="max-width: 400px; margin: 0 auto;">
         <q-item v-if="loading" bordered>
           <q-item-section class="text-center">
@@ -32,14 +31,14 @@
           @click="openAnswer(item)"
         >
           <q-item-section avatar>
-            <q-avatar color="grey-4" text-color="white">
-              {{ getInitials(item.user_detail?.display_name || 'User') }}
+            <q-avatar size="36px" class="q-mr-sm">
+              <img :src="item.user_detail?.avatar ? api.API_UPLOADS_URL + '/' + item.user_detail?.avatar : 'https://placehold.co/100?text=👤'" alt="Avatar" />
             </q-avatar>
           </q-item-section>
   
           <q-item-section>
             <q-item-label lines="1" class="text-weight-bold" style="font-size: 16px;">
-              {{ item.user_detail?.display_name || ('User ' + item.user_id) }}
+              {{ item.user_detail?.display_name || ('User ' + item.user_id) }} - {{ item.quiz_detail?.module_detail?.title }}
             </q-item-label>
             <q-item-label caption lines="1" style="font-size: 13px;">
               {{ item.answer_type === 'file' ? 'Voice Note' : item.answer_value }}
