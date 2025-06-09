@@ -16,7 +16,7 @@
 
         <!-- Menu ini hanya muncul kalau user guru -->
         <q-item v-if="isAdmin" clickable v-ripple to="/tajwid">
-          <q-item-section>Tajwid</q-item-section>
+          <q-item-section>Hukum Tajwid</q-item-section>
         </q-item>
 
         <q-separator />

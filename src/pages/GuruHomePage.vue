@@ -12,7 +12,7 @@
 
     <!-- Header -->
     <div class="row items-center justify-between q-mb-md">
-      <h6 class="text-bold">Daftar Modul</h6>
+      <h6 class="text-bold">Daftar Modul Tajwid</h6>
       <q-btn label="Tambah Modul" color="green" flat rounded dense @click="onAddModule" />
     </div>
 
@@ -66,8 +66,8 @@
 
     <!-- List Lessons -->
     <div class="row items-center justify-between q-mt-md q-mb-md">
-      <h6 class="text-bold">Daftar Pelatihan</h6>
-      <q-btn label="Tambah Pelatihan" color="green" flat rounded dense @click="onAddLesson" />
+      <h6 class="text-bold">Daftar Materi Tajwid</h6>
+      <q-btn label="Tambah Materi" color="green" flat rounded dense @click="onAddLesson" />
     </div>
 
     <!-- Lessons List as a List (using q-item) -->
@@ -363,7 +363,7 @@
     console.log('Delete modul:', module);
     $q.dialog({
       title: 'Konfirmasi',
-      message: 'Apakah anda yakin akan menghapus Modul ini?',
+      message: 'Apakah anda yakin akan menghapus Modul Tajwid ini ?',
       ok: {
         label: 'Ya',
         color: 'primary'
@@ -446,7 +446,7 @@
   const deleteLesson = (lesson) => {
     $q.dialog({
       title: 'Konfirmasi',
-      message: 'Apakah anda yakin akan menghapus Pelatihan ini?',
+      message: 'Apakah anda yakin akan menghapus Materi Tajwid ini?',
       ok: {
         label: 'Ya',
         color: 'primary'
@@ -466,7 +466,7 @@
 
       $q.dialog({
         title: 'Berhasil',
-        message: 'Pelatihan berhasil dihapus',
+        message: 'Materi Tajwid berhasil dihapus',
         ok: {
           label: 'OK',
           color: 'primary'

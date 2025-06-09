@@ -4,7 +4,7 @@
       <q-header elevated class="bg-green-gradient text-white">
         <q-toolbar>
           <q-btn flat round dense icon="arrow_back" @click="goBack" />
-          <q-toolbar-title>{{ form.title || 'Tambah Tajwid' }}</q-toolbar-title>
+          <q-toolbar-title>{{ form.title || 'Tambah Hukum Tajwid' }}</q-toolbar-title>
         </q-toolbar>
       </q-header>
   
@@ -15,8 +15,8 @@
             <q-input
               filled
               v-model="form.section_name"
-              label="Tajwid"
-              :rules="[val => !!val || 'Nama Tajwid wajib diisi']"
+              label="Nama Hukum Tajwid"
+              :rules="[val => !!val || 'Nama Hukum Tajwid wajib diisi']"
             />
   
             <div class="row justify-end q-gutter-sm q-mt-md">

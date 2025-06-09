@@ -67,7 +67,7 @@
                 class="bg-red text-white text-caption text-center q-mt-sm"
                 style="padding: 4px; border-radius: 4px;opacity: 75%;"
               >
-                Pelatihan dihapus
+                Materi tidak tersedia
               </div>
             </q-card-section>
           </q-card>

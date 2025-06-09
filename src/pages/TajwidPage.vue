@@ -12,8 +12,8 @@
   
       <!-- Header -->
       <div class="row items-center justify-between q-mb-md">
-        <h6 class="text-bold">Daftar Tawjid</h6>
-        <q-btn label="Tambah Tajwid" color="green" flat rounded dense @click="onAddTajwid" />
+        <h6 class="text-bold">Daftar Hukum Tawjid</h6>
+        <q-btn label="Tambah Hukum Tajwid" color="green" flat rounded dense @click="onAddTajwid" />
       </div>
   
       <!-- Course List as a List (using q-item) -->
@@ -258,7 +258,7 @@
     const deleteTajwid = (section) => {
       $q.dialog({
         title: 'Konfirmasi',
-        message: 'Apakah anda yakin akan menghapus Tajwid ini?',
+        message: 'Apakah anda yakin akan menghapus Hukum Tajwid ini ?',
         ok: {
           label: 'Ya',
           color: 'primary'
@@ -278,7 +278,7 @@
   
         $q.dialog({
           title: 'Berhasil',
-          message: 'Tajwid berhasil dihapus',
+          message: 'Hukum Tajwid berhasil dihapus',
           ok: {
             label: 'OK',
             color: 'primary'
