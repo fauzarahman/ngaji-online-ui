@@ -70,7 +70,7 @@
               <q-item-label caption>{{ lesson.description }}</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-btn flat dense round icon="check_circle" />
+              <q-btn v-if="isLessonPassed[lesson.id]" flat dense round icon="check_circle" class="text-green-7" />
             </q-item-section>
           </q-item>
         </q-card>
@@ -131,6 +131,7 @@ const moduleData = ref(null);
 const lessons = ref([]);
 const quizes = ref([]);
 const isPassed = ref({});
+const isLessonPassed = ref({});
 
 const accessToken = localStorage.getItem('token');
 const userId = Number(localStorage.getItem('id'));
@@ -157,6 +158,17 @@ const checkIfQuizPassed = async (quizId) => {
     isPassed.value[quizId] = response.data?.data?.length > 0;
   } catch (error) {
     console.error('Failed to check quiz status:', error);
+  }
+};
+const checkIfLessonPassed = async (lessonid) => {
+  try {
+    const response = await axios.get(`${api.API_BASE_URL}/videologs`, {
+      headers: { Authorization: `${accessToken}` },
+      params: { parent_id: lessonid, user_id: userId, is_complete: 1 }
+    });
+    isLessonPassed.value[lessonid] = response.data?.data?.length > 0;
+  } catch (error) {
+    console.error('Failed to check lesson status:', error);
   }
 };
 
@@ -226,6 +238,10 @@ onMounted(async () => {
     moduleData.value = moduleRes.data.data[0] || null;
     lessons.value = lessonsRes.data.data;
     quizes.value = quizRes.data.data;
+
+    for (const lesson of lessons.value) {
+      await checkIfLessonPassed(lesson.id);
+    }
 
     for (const quiz of quizes.value) {
       await checkIfQuizPassed(quiz.id);
